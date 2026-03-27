@@ -108,23 +108,27 @@ export async function fetchForecast(municipioCode: string): Promise<ForecastDay[
     const pred = raw[0]?.prediccion?.dia ?? []
 
     return pred.slice(0, 7).map((d) => {
-      // Some periods come as arrays; take the all-day value or first entry
-      const allDay = (arr: Array<{ periodo?: string; value: unknown }>) =>
+      type WithPeriodo = { periodo?: string }
+      type CieloItem  = WithPeriodo & { value: string; descripcion: string }
+      type VientoItem = WithPeriodo & { direccion: string; velocidad: number }
+      type PrecipItem = WithPeriodo & { value: number }
+
+      const allDay = <T extends WithPeriodo>(arr: T[]): T | undefined =>
         arr.find((x) => !x.periodo || x.periodo === '0024') ?? arr[0]
 
-      const cielo = allDay(d.estadoCielo as Array<{ periodo?: string; value: string; descripcion: string }>)
-      const viento = allDay(d.viento as Array<{ periodo?: string; direccion: string; velocidad: number }>)
-      const precip = allDay(d.probPrecipitacion as Array<{ periodo?: string; value: number }>)
+      const cielo  = allDay(d.estadoCielo       as CieloItem[])
+      const viento = allDay(d.viento            as VientoItem[])
+      const precip = allDay(d.probPrecipitacion as PrecipItem[])
 
       return {
         fecha:           d.fecha,
         tempMax:         d.temperatura?.maxima ?? 0,
         tempMin:         d.temperatura?.minima ?? 0,
-        probPrecip:      Number((precip as { value: number })?.value ?? 0),
-        estadoCielo:     String((cielo as { value: string })?.value ?? ''),
-        estadoCieloDesc: String((cielo as { descripcion: string })?.descripcion ?? ''),
-        vientoDir:       String((viento as { direccion: string })?.direccion ?? ''),
-        vientoVel:       Number((viento as { velocidad: number })?.velocidad ?? 0),
+        probPrecip:      Number(precip?.value    ?? 0),
+        estadoCielo:     String(cielo?.value     ?? ''),
+        estadoCieloDesc: String(cielo?.descripcion ?? ''),
+        vientoDir:       String(viento?.direccion  ?? ''),
+        vientoVel:       Number(viento?.velocidad  ?? 0),
       }
     })
   } catch (err) {
