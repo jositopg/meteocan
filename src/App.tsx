@@ -5,6 +5,9 @@ import PixelMap from './components/PixelMap'
 import MetricCard from './components/MetricCard'
 import EducationalCard from './components/EducationalCard'
 import ForecastBar from './components/ForecastBar'
+import MapLegend from './components/MapLegend'
+import LayerContext from './components/LayerContext'
+import Glossary from './components/Glossary'
 import { useWeather } from './hooks/useWeather'
 
 type Layer = 'clouds' | 'rain' | 'storms'
@@ -21,20 +24,20 @@ const EDUCATION: Record<Layer, { tag: string; title: string; body: string }> = {
     body: 'El viento forzado a subir una montaña se enfría y precipita en el lado de barlovento. Al descender por sotavento, se calienta adiabáticamente. Resultado: lluvia intensa en el norte de Tenerife y sol seco en el sur el mismo día.',
   },
   storms: {
-    tag: 'Convección',
-    title: 'Tormentas en el archipiélago',
-    body: 'La orografía actúa como desencadenante: el calentamiento diurno sobre las cumbres genera ascensos convectivos locales. Las descargas eléctricas se concentran en pocas horas, difíciles de predecir con más de 6 h de antelación incluso con modelos de mesoescala de 2.5 km.',
+    tag: 'Vientos Alisios',
+    title: 'Cómo funciona el régimen de vientos',
+    body: 'Los alisios soplan de NE a SO de forma casi constante entre los 15° y 30°N, impulsados por el anticiclón de las Azores. En verano son más fuertes y estables; en invierno pueden debilitarse cuando las borrascas atlánticas desplazan el anticiclón hacia el sur.',
   },
 }
 
-// Map wind direction abbreviation to compass label
-function windLabel(dir: string, vel: number): string {
-  if (!dir || vel === 0) return 'Calma'
-  const map: Record<string, string> = {
-    N: 'N', NE: 'NE', E: 'E', SE: 'SE',
-    S: 'S', SO: 'SO', O: 'O', NO: 'NO',
-  }
-  return `${map[dir] ?? dir} · ${vel} km/h`
+function windDirLabel(deg: number): string {
+  const dirs = ['N', 'NE', 'E', 'SE', 'S', 'SO', 'O', 'NO']
+  return dirs[Math.round(deg / 45) % 8]
+}
+
+function pressureTrend(_hPa: number): string {
+  // Without historical data we can't compute real trend; show neutral
+  return '→ estable'
 }
 
 export default function App() {
@@ -48,14 +51,14 @@ export default function App() {
     <div
       className="min-h-screen grid"
       style={{
-        gridTemplateColumns: '1fr 340px',
+        gridTemplateColumns: '1fr 360px',
         gridTemplateRows: 'auto 1fr auto',
         background: 'var(--surface)',
       }}
     >
       {/* ── Header ── */}
       <header
-        className="col-span-2 flex items-center justify-between px-6 py-4"
+        className="col-span-2 flex items-center justify-between px-6 py-3"
         style={{ background: 'var(--surface-container-low)' }}
       >
         <div className="flex items-center gap-4">
@@ -67,64 +70,61 @@ export default function App() {
           </h1>
           <span
             className="text-xs text-on-surface-variant px-2 py-0.5 rounded-sm"
-            style={{
-              fontFamily: 'var(--font-mono)',
-              background: 'var(--surface-container-high)',
-            }}
+            style={{ fontFamily: 'var(--font-mono)', background: 'var(--surface-container-high)' }}
           >
-            HARMONIE-AROME · 2.5 km
+            AEMET HARMONIE-AROME · 2.5 km
           </span>
           {error && (
             <span
               className="text-xs px-2 py-0.5 rounded-sm"
-              style={{
-                fontFamily: 'var(--font-mono)',
-                background: 'rgba(255,80,80,0.12)',
-                color: '#ff6b6b',
-              }}
+              style={{ fontFamily: 'var(--font-mono)', background: 'rgba(255,80,80,0.12)', color: '#ff6b6b' }}
               title={error}
             >
-              Sin conexión AEMET
+              Sin datos AEMET
             </span>
           )}
         </div>
 
         <div className="flex items-center gap-3">
           {lastUpdated && (
-            <span
-              className="text-on-surface-variant cursor-pointer select-none"
+            <button
+              className="text-on-surface-variant hover:text-primary transition-colors"
               style={{ fontFamily: 'var(--font-mono)', fontSize: '0.65rem' }}
               onClick={refresh}
               title="Actualizar ahora"
             >
               ↻ {lastUpdated.toLocaleTimeString('es-ES', { hour: '2-digit', minute: '2-digit' })}
-            </span>
+            </button>
           )}
-          <CoordinateHUD lat={coords.lat} lng={coords.lng} island="Tenerife" />
+          <CoordinateHUD lat={coords.lat} lng={coords.lng} island="Canarias" />
           <LayerToggle active={layer} onChange={setLayer} />
         </div>
       </header>
 
       {/* ── Map ── */}
-      <main
-        className="relative overflow-hidden"
-        style={{ background: 'var(--surface-dim)' }}
-      >
+      <main className="relative overflow-hidden" style={{ background: 'var(--surface-dim)' }}>
         <PixelMap layer={layer} onCoordinateChange={(lat, lng) => setCoords({ lat, lng })} />
 
+        {/* Legend — bottom right */}
+        <div className="absolute bottom-4 right-4">
+          <MapLegend layer={layer} />
+        </div>
+
+        {/* Resolution note — bottom left */}
         <div
           className="absolute bottom-4 left-4 px-3 py-2 rounded-md text-xs"
           style={{
             fontFamily: 'var(--font-mono)',
             color: 'var(--on-surface-variant)',
-            background: 'rgba(42,53,72,0.7)',
+            background: 'rgba(8,20,37,0.75)',
             backdropFilter: 'blur(20px)',
+            fontSize: '0.65rem',
           }}
         >
-          Días 1–2: Alta res. 2.5 km &nbsp;·&nbsp;
-          <span style={{ color: 'var(--tertiary)', opacity: 0.8 }}>
-            Días 3–7: Baja res. 25 km ▲ detalle degradado
-          </span>
+          Días 1–2 ·&nbsp;
+          <span style={{ color: 'var(--primary)' }}>2.5 km alta res.</span>
+          &nbsp;·&nbsp; Días 3–7 ·&nbsp;
+          <span style={{ color: 'var(--tertiary)' }}>25 km baja res.</span>
         </div>
       </main>
 
@@ -133,17 +133,20 @@ export default function App() {
         className="flex flex-col gap-4 p-5 overflow-y-auto"
         style={{ background: 'var(--surface-container-low)' }}
       >
-        {/* Station header */}
+        {/* What you're seeing — changes with active layer */}
+        <LayerContext layer={layer} />
+
+        {/* Station info */}
         <div>
           <p
             className="text-on-surface-variant text-xs uppercase tracking-widest mb-1"
             style={{ fontFamily: 'var(--font-body)', letterSpacing: '0.12em' }}
           >
-            Estación de referencia
+            Estación meteorológica
           </p>
           <h2
             className="text-on-surface font-semibold"
-            style={{ fontFamily: 'var(--font-display)', fontSize: '1.25rem' }}
+            style={{ fontFamily: 'var(--font-display)', fontSize: '1.1rem' }}
           >
             {obs?.ubi ?? 'Santa Cruz de Tenerife'}
           </h2>
@@ -157,55 +160,47 @@ export default function App() {
           </p>
         </div>
 
-        {/* Metrics grid */}
-        <div className="grid grid-cols-2 gap-2">
-          <MetricCard
-            label="Temp"
-            value={loading ? '—' : String(obs?.ta ?? '—')}
-            unit="°C"
-            sub={obs ? `Máx ${obs.tamax}° / Mín ${obs.tamin}°` : undefined}
-          />
-          <MetricCard
-            label="Viento"
-            value={loading ? '—' : String(obs?.vv ?? '—')}
-            unit="km/h"
-            sub={obs ? windLabel(
-              ['N','NE','E','SE','S','SO','O','NO'][Math.round(obs.dv / 45) % 8],
-              Math.round(obs.vv)
-            ) : undefined}
-          />
-          <MetricCard
-            label="Humedad"
-            value={loading ? '—' : String(obs?.hr ?? '—')}
-            unit="%"
-            sub={obs ? `Precip. ${obs.prec ?? 0} mm` : undefined}
-          />
-          <MetricCard
-            label="Presión"
-            value={loading ? '—' : String(obs?.pres ?? '—')}
-            unit="hPa"
-            sub={obs ? '↗ estable' : undefined}
-          />
+        {/* Metrics */}
+        <div className="flex flex-col gap-2">
+          <p
+            className="text-on-surface-variant text-xs uppercase tracking-widest"
+            style={{ fontFamily: 'var(--font-body)', letterSpacing: '0.12em' }}
+          >
+            Condiciones actuales
+          </p>
+          <div className="grid grid-cols-2 gap-2">
+            <MetricCard
+              label="Temperatura"
+              value={loading ? '—' : String(obs?.ta ?? '—')}
+              unit="°C"
+              sub={obs ? `Máx ${obs.tamax}° · Mín ${obs.tamin}°` : 'Cargando...'}
+            />
+            <MetricCard
+              label="Viento"
+              value={loading ? '—' : String(Math.round(obs?.vv ?? 0) || '—')}
+              unit="km/h"
+              sub={obs ? `${windDirLabel(obs.dv)} · ${obs.dv}°` : 'Cargando...'}
+            />
+            <MetricCard
+              label="Humedad"
+              value={loading ? '—' : String(obs?.hr ?? '—')}
+              unit="%"
+              sub={obs ? `Precip. ${obs.prec ?? 0} mm` : 'Cargando...'}
+            />
+            <MetricCard
+              label="Presión"
+              value={loading ? '—' : String(obs?.pres ?? '—')}
+              unit="hPa"
+              sub={obs ? pressureTrend(obs.pres) : 'Cargando...'}
+            />
+          </div>
         </div>
 
-        {/* Educational card — changes with layer */}
+        {/* Educational deep-dive */}
         <EducationalCard tag={edu.tag} title={edu.title} body={edu.body} />
 
-        {/* Education chips */}
-        <div className="flex flex-wrap gap-2">
-          {['Microclimas', 'Vientos Alisios', 'Volcanología', 'Orografía'].map((chip) => (
-            <span
-              key={chip}
-              className="text-xs text-on-surface-variant px-3 py-1 rounded-md"
-              style={{
-                fontFamily: 'var(--font-body)',
-                background: 'var(--surface-container-highest)',
-              }}
-            >
-              {chip}
-            </span>
-          ))}
-        </div>
+        {/* Glossary */}
+        <Glossary />
       </aside>
 
       {/* ── Forecast bar ── */}
@@ -213,12 +208,20 @@ export default function App() {
         className="col-span-2 px-6 py-4"
         style={{ background: 'var(--surface-container-low)' }}
       >
-        <p
-          className="text-on-surface-variant text-xs uppercase tracking-widest mb-3"
-          style={{ fontFamily: 'var(--font-body)', letterSpacing: '0.12em' }}
-        >
-          Previsión 7 días
-        </p>
+        <div className="flex items-center justify-between mb-3">
+          <p
+            className="text-on-surface-variant text-xs uppercase tracking-widest"
+            style={{ fontFamily: 'var(--font-body)', letterSpacing: '0.12em' }}
+          >
+            Previsión 7 días · Santa Cruz de Tenerife
+          </p>
+          <p
+            className="text-on-surface-variant"
+            style={{ fontFamily: 'var(--font-mono)', fontSize: '0.6rem' }}
+          >
+            % = probabilidad de lluvia · Temp en °C
+          </p>
+        </div>
         <ForecastBar days={forecast} loading={loading} />
       </footer>
     </div>

@@ -7,42 +7,109 @@ interface PixelMapProps {
   onCoordinateChange: (lat: number, lng: number) => void
 }
 
-// Canary Islands bounding box
 const BOUNDS = {
   lat: { min: 27.6, max: 29.5 },
   lng: { min: -18.2, max: -13.3 },
 }
 
-// OWM tile layer names
 const OWM_LAYERS: Record<Layer, string> = {
   clouds: 'clouds_new',
   rain:   'precipitation_new',
   storms: 'wind_new',
 }
 
-// ── Tile math (Web Mercator / OSM) ────────────────────────────────────────
+// ── Island polygon data (lat, lng) ─────────────────────────────────────────
+interface Island {
+  name: string
+  label: [number, number]   // [lat, lng] for name label
+  poly: [number, number][]  // clockwise coastline
+}
 
-function lngToTile(lng: number, z: number): number {
+const ISLANDS: Island[] = [
+  {
+    name: 'Tenerife',
+    label: [28.26, -16.57],
+    poly: [
+      [28.34, -16.92], [28.47, -16.84], [28.57, -16.70], [28.58, -16.53],
+      [28.57, -16.37], [28.50, -16.14], [28.38, -16.14], [28.24, -16.20],
+      [28.11, -16.41], [27.99, -16.64], [28.07, -16.84], [28.22, -16.92],
+    ],
+  },
+  {
+    name: 'Gran Canaria',
+    label: [27.94, -15.60],
+    poly: [
+      [28.16, -15.65], [28.10, -15.43], [28.00, -15.36], [27.86, -15.36],
+      [27.74, -15.48], [27.73, -15.68], [27.80, -15.84], [27.99, -15.84],
+      [28.13, -15.77],
+    ],
+  },
+  {
+    name: 'Fuerteventura',
+    label: [28.28, -14.18],
+    poly: [
+      [28.73, -13.97], [28.65, -13.82], [28.46, -13.83], [28.29, -13.92],
+      [28.12, -14.04], [27.97, -14.17], [27.82, -14.29], [27.65, -14.53],
+      [27.73, -14.56], [27.90, -14.46], [28.10, -14.31], [28.30, -14.15],
+      [28.52, -14.00], [28.67, -13.97],
+    ],
+  },
+  {
+    name: 'Lanzarote',
+    label: [29.04, -13.66],
+    poly: [
+      [29.26, -13.50], [29.21, -13.42], [29.10, -13.45], [28.97, -13.54],
+      [28.85, -13.73], [28.84, -13.92], [28.92, -13.98], [29.05, -13.91],
+      [29.16, -13.76], [29.23, -13.60],
+    ],
+  },
+  {
+    name: 'La Palma',
+    label: [28.65, -17.88],
+    poly: [
+      [28.85, -17.83], [28.76, -17.75], [28.63, -17.74], [28.51, -17.80],
+      [28.45, -17.89], [28.47, -17.98], [28.60, -18.01], [28.74, -17.94],
+    ],
+  },
+  {
+    name: 'La Gomera',
+    label: [28.08, -17.22],
+    poly: [
+      [28.21, -17.12], [28.14, -17.07], [28.04, -17.09], [27.97, -17.19],
+      [27.97, -17.30], [28.05, -17.37], [28.16, -17.34], [28.22, -17.23],
+    ],
+  },
+  {
+    name: 'El Hierro',
+    label: [27.74, -18.04],
+    poly: [
+      [27.84, -17.92], [27.78, -17.88], [27.71, -17.92], [27.63, -18.03],
+      [27.63, -18.13], [27.69, -18.18], [27.79, -18.15], [27.84, -18.05],
+    ],
+  },
+]
+
+// ── Coordinate helpers ─────────────────────────────────────────────────────
+
+function geoToCanvas(lat: number, lng: number, W: number, H: number) {
+  return {
+    x: (lng - BOUNDS.lng.min) / (BOUNDS.lng.max - BOUNDS.lng.min) * W,
+    y: (BOUNDS.lat.max - lat) / (BOUNDS.lat.max - BOUNDS.lat.min) * H,
+  }
+}
+
+function lngToTile(lng: number, z: number) {
   return Math.floor((lng + 180) / 360 * Math.pow(2, z))
 }
-
-function latToTile(lat: number, z: number): number {
-  const rad = lat * Math.PI / 180
-  return Math.floor(
-    (1 - Math.log(Math.tan(rad) + 1 / Math.cos(rad)) / Math.PI) / 2 * Math.pow(2, z)
-  )
+function latToTile(lat: number, z: number) {
+  const r = lat * Math.PI / 180
+  return Math.floor((1 - Math.log(Math.tan(r) + 1 / Math.cos(r)) / Math.PI) / 2 * Math.pow(2, z))
 }
-
-function tileToLng(x: number, z: number): number {
-  return x / Math.pow(2, z) * 360 - 180
-}
-
-function tileToLat(y: number, z: number): number {
+function tileToLng(x: number, z: number) { return x / Math.pow(2, z) * 360 - 180 }
+function tileToLat(y: number, z: number) {
   const n = Math.PI - 2 * Math.PI * y / Math.pow(2, z)
   return 180 / Math.PI * Math.atan(0.5 * (Math.exp(n) - Math.exp(-n)))
 }
-
-// ── Image loader ──────────────────────────────────────────────────────────
 
 function loadImage(url: string): Promise<HTMLImageElement> {
   return new Promise((resolve, reject) => {
@@ -54,105 +121,83 @@ function loadImage(url: string): Promise<HTMLImageElement> {
   })
 }
 
-// ── Island silhouettes (base layer) ───────────────────────────────────────
+// ── Canvas drawing ─────────────────────────────────────────────────────────
 
-function generateIslandData(cols: number, rows: number): Float32Array {
-  const data = new Float32Array(cols * rows)
-  const islands = [
-    { cx: 0.72, cy: 0.45, rx: 0.08, ry: 0.06, v: 0.9 },
-    { cx: 0.82, cy: 0.52, rx: 0.05, ry: 0.04, v: 0.8 },
-    { cx: 0.92, cy: 0.48, rx: 0.04, ry: 0.03, v: 0.7 },
-    { cx: 0.97, cy: 0.38, rx: 0.03, ry: 0.03, v: 0.65 },
-    { cx: 0.60, cy: 0.42, rx: 0.04, ry: 0.03, v: 0.75 },
-    { cx: 0.52, cy: 0.50, rx: 0.025, ry: 0.025, v: 0.7 },
-    { cx: 0.46, cy: 0.56, rx: 0.02,  ry: 0.02,  v: 0.65 },
-  ]
-  for (let r = 0; r < rows; r++) {
-    for (let c = 0; c < cols; c++) {
-      const nx = c / cols
-      const ny = r / rows
-      let val = 0
-      for (const isl of islands) {
-        const dx = (nx - isl.cx) / isl.rx
-        const dy = (ny - isl.cy) / isl.ry
-        const dist = Math.sqrt(dx * dx + dy * dy)
-        if (dist < 1) val = Math.max(val, isl.v * (1 - dist * 0.6))
-      }
-      data[r * cols + c] = val
-    }
-  }
-  return data
-}
-
-// ── Canvas helpers ────────────────────────────────────────────────────────
-
-// Map a geographic point to canvas pixel (linear, good enough at this scale)
-function geoToCanvas(lat: number, lng: number, W: number, H: number) {
-  const cx = (lng - BOUNDS.lng.min) / (BOUNDS.lng.max - BOUNDS.lng.min) * W
-  const cy = (BOUNDS.lat.max - lat) / (BOUNDS.lat.max - BOUNDS.lat.min) * H
-  return { cx, cy }
-}
-
-function drawBase(ctx: CanvasRenderingContext2D, W: number, H: number) {
-  // Ocean background
-  const grad = ctx.createLinearGradient(0, 0, W, H)
-  grad.addColorStop(0, '#040e1f')
-  grad.addColorStop(1, '#081425')
-  ctx.fillStyle = grad
+function drawOcean(ctx: CanvasRenderingContext2D, W: number, H: number) {
+  const g = ctx.createLinearGradient(0, 0, W, H)
+  g.addColorStop(0, '#030c1a')
+  g.addColorStop(1, '#071220')
+  ctx.fillStyle = g
   ctx.fillRect(0, 0, W, H)
 
-  const COLS = Math.floor(W / 8)
-  const ROWS = Math.floor(H / 8)
-  const PX = Math.floor(W / COLS)
-  const PY = Math.floor(H / ROWS)
-  const islandData = generateIslandData(COLS, ROWS)
-
-  for (let r = 0; r < ROWS; r++) {
-    for (let c = 0; c < COLS; c++) {
-      const island = islandData[r * COLS + c]
-      if (island > 0.05) {
-        ctx.fillStyle = `rgba(${Math.round(30 + island * 60)},${Math.round(45 + island * 50)},${Math.round(40 + island * 30)},1)`
-        ctx.fillRect(c * PX, r * PY, PX - 1, PY - 1)
-      }
-    }
-  }
-
-  // Grid lines
+  // Subtle lat/lng grid
   ctx.strokeStyle = 'rgba(139,209,232,0.04)'
   ctx.lineWidth = 0.5
-  for (let c = 0; c <= COLS; c++) {
-    ctx.beginPath(); ctx.moveTo(c * PX, 0); ctx.lineTo(c * PX, H); ctx.stroke()
+  for (let lng = -18; lng <= -13; lng++) {
+    const { x } = geoToCanvas(BOUNDS.lat.min, lng, W, H)
+    ctx.beginPath(); ctx.moveTo(x, 0); ctx.lineTo(x, H); ctx.stroke()
   }
-  for (let r = 0; r <= ROWS; r++) {
-    ctx.beginPath(); ctx.moveTo(0, r * PY); ctx.lineTo(W, r * PY); ctx.stroke()
+  for (let lat = 28; lat <= 29; lat++) {
+    const { y } = geoToCanvas(lat, BOUNDS.lng.min, W, H)
+    ctx.beginPath(); ctx.moveTo(0, y); ctx.lineTo(W, y); ctx.stroke()
+  }
+}
+
+function drawIslands(ctx: CanvasRenderingContext2D, W: number, H: number) {
+  for (const island of ISLANDS) {
+    if (island.poly.length < 3) continue
+    ctx.beginPath()
+    const first = geoToCanvas(island.poly[0][0], island.poly[0][1], W, H)
+    ctx.moveTo(first.x, first.y)
+    for (let i = 1; i < island.poly.length; i++) {
+      const p = geoToCanvas(island.poly[i][0], island.poly[i][1], W, H)
+      ctx.lineTo(p.x, p.y)
+    }
+    ctx.closePath()
+
+    // Fill: volcanic dark green-brown gradient
+    const { x: cx, y: cy } = geoToCanvas(island.label[0], island.label[1], W, H)
+    const grad = ctx.createRadialGradient(cx, cy, 0, cx, cy, 80)
+    grad.addColorStop(0, 'rgba(62, 75, 58, 0.95)')
+    grad.addColorStop(1, 'rgba(38, 48, 36, 0.90)')
+    ctx.fillStyle = grad
+    ctx.fill()
+
+    // Coastline stroke
+    ctx.strokeStyle = 'rgba(139,209,232,0.25)'
+    ctx.lineWidth = 1
+    ctx.stroke()
   }
 }
 
 function drawLabels(ctx: CanvasRenderingContext2D, W: number, H: number) {
-  ctx.font = '500 10px "JetBrains Mono", monospace'
-  ctx.fillStyle = 'rgba(216,227,251,0.7)'
   ctx.textAlign = 'center'
-  const labels = [
-    { label: 'TF', lat: 28.29, lng: -16.62 },
-    { label: 'GC', lat: 28.00, lng: -15.57 },
-    { label: 'FV', lat: 28.36, lng: -14.00 },
-    { label: 'LZ', lat: 29.04, lng: -13.64 },
-    { label: 'LP', lat: 28.68, lng: -17.86 },
-    { label: 'GM', lat: 28.10, lng: -17.11 },
-    { label: 'EH', lat: 27.74, lng: -18.03 },
-  ]
-  for (const l of labels) {
-    const { cx, cy } = geoToCanvas(l.lat, l.lng, W, H)
-    ctx.fillText(l.label, cx, cy)
+  ctx.textBaseline = 'middle'
+
+  for (const island of ISLANDS) {
+    const { x, y } = geoToCanvas(island.label[0], island.label[1], W, H)
+
+    // Background pill
+    ctx.font = '600 10px "Space Grotesk", sans-serif'
+    const tw = ctx.measureText(island.name).width
+    ctx.fillStyle = 'rgba(8,20,37,0.75)'
+    const pad = 5
+    const rh = 14
+    ctx.beginPath()
+    ctx.roundRect(x - tw / 2 - pad, y - rh / 2, tw + pad * 2, rh, 3)
+    ctx.fill()
+
+    // Label text
+    ctx.fillStyle = 'rgba(216,227,251,0.90)'
+    ctx.fillText(island.name, x, y)
   }
 }
 
-// ── Component ─────────────────────────────────────────────────────────────
+// ── Component ──────────────────────────────────────────────────────────────
 
 export default function PixelMap({ layer, onCoordinateChange }: PixelMapProps) {
   const canvasRef    = useRef<HTMLCanvasElement>(null)
   const containerRef = useRef<HTMLDivElement>(null)
-  // Keep an abort controller so layer switches cancel in-flight tile fetches
   const abortRef     = useRef<AbortController | null>(null)
 
   const render = useCallback(async () => {
@@ -164,66 +209,69 @@ export default function PixelMap({ layer, onCoordinateChange }: PixelMapProps) {
     const H = container.clientHeight
     canvas.width  = W
     canvas.height = H
-
     const ctx = canvas.getContext('2d')!
 
-    // 1. Draw island base synchronously
-    drawBase(ctx, W, H)
+    // 1. Base
+    drawOcean(ctx, W, H)
+    drawIslands(ctx, W, H)
     drawLabels(ctx, W, H)
 
-    // 2. Cancel any previous tile fetch
+    // 2. Cancel previous fetches
     abortRef.current?.abort()
     const abort = new AbortController()
     abortRef.current = abort
 
-    // 3. Fetch OWM tiles at zoom 7
+    // 3. OWM tiles
     const ZOOM = 7
     const tx1 = lngToTile(BOUNDS.lng.min, ZOOM)
     const tx2 = lngToTile(BOUNDS.lng.max, ZOOM)
-    const ty1 = latToTile(BOUNDS.lat.max, ZOOM)  // min y = northernmost
-    const ty2 = latToTile(BOUNDS.lat.min, ZOOM)  // max y = southernmost
+    const ty1 = latToTile(BOUNDS.lat.max, ZOOM)
+    const ty2 = latToTile(BOUNDS.lat.min, ZOOM)
 
-    const owmKey   = import.meta.env.VITE_OWM_API_KEY as string
+    const owmKey    = import.meta.env.VITE_OWM_API_KEY as string
     const layerName = OWM_LAYERS[layer]
 
-    const tileJobs: Promise<{ img: HTMLImageElement; tx: number; ty: number } | null>[] = []
+    const jobs = []
     for (let tx = tx1; tx <= tx2; tx++) {
       for (let ty = ty1; ty <= ty2; ty++) {
         const url = `https://tile.openweathermap.org/map/${layerName}/${ZOOM}/${tx}/${ty}.png?appid=${owmKey}`
-        tileJobs.push(
-          loadImage(url)
-            .then((img) => ({ img, tx, ty }))
-            .catch(() => null)
-        )
+        jobs.push(loadImage(url).then(img => ({ img, tx, ty })).catch(() => null))
       }
     }
 
-    const tiles = await Promise.all(tileJobs)
+    const tiles = await Promise.all(jobs)
     if (abort.signal.aborted) return
 
-    // 4. Draw tiles onto canvas with geographic alignment
+    // 4. Draw tiles
     ctx.save()
-    ctx.globalAlpha = 0.72
+    ctx.globalAlpha = 0.68
     ctx.globalCompositeOperation = 'screen'
-
     for (const tile of tiles) {
       if (!tile) continue
       const { img, tx, ty } = tile
-
-      const lngW = tileToLng(tx,     ZOOM)
-      const lngE = tileToLng(tx + 1, ZOOM)
-      const latN = tileToLat(ty,     ZOOM)
-      const latS = tileToLat(ty + 1, ZOOM)
-
-      const { cx: x1, cy: y1 } = geoToCanvas(latN, lngW, W, H)
-      const { cx: x2, cy: y2 } = geoToCanvas(latS, lngE, W, H)
-
+      const { x: x1, y: y1 } = geoToCanvas(tileToLat(ty, ZOOM),     tileToLng(tx,     ZOOM), W, H)
+      const { x: x2, y: y2 } = geoToCanvas(tileToLat(ty + 1, ZOOM), tileToLng(tx + 1, ZOOM), W, H)
       ctx.drawImage(img, x1, y1, x2 - x1, y2 - y1)
     }
-
     ctx.restore()
 
-    // 5. Re-draw labels on top of tiles
+    // 5. Island outlines + labels on top (after tile overlay)
+    ctx.save()
+    for (const island of ISLANDS) {
+      if (island.poly.length < 3) continue
+      ctx.beginPath()
+      const first = geoToCanvas(island.poly[0][0], island.poly[0][1], W, H)
+      ctx.moveTo(first.x, first.y)
+      for (let i = 1; i < island.poly.length; i++) {
+        const p = geoToCanvas(island.poly[i][0], island.poly[i][1], W, H)
+        ctx.lineTo(p.x, p.y)
+      }
+      ctx.closePath()
+      ctx.strokeStyle = 'rgba(139,209,232,0.35)'
+      ctx.lineWidth = 1.5
+      ctx.stroke()
+    }
+    ctx.restore()
     drawLabels(ctx, W, H)
   }, [layer])
 
