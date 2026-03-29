@@ -1,10 +1,19 @@
 import { useState } from 'react'
 import CurrentWeather from './components/CurrentWeather'
+import DailySummary from './components/DailySummary'
+import PhenomenonBadge from './components/PhenomenonBadge'
+import ActivityImpact from './components/ActivityImpact'
+import ContextStats from './components/ContextStats'
 import ForecastStrip from './components/ForecastStrip'
+import ConfidenceBar from './components/ConfidenceBar'
 import TempChart from './components/TempChart'
 import RainChart from './components/RainChart'
 import LearnPage from './pages/LearnPage'
 import { useWeather } from './hooks/useWeather'
+
+function Divider() {
+  return <div style={{ height: 1, background: 'var(--border)', margin: '0 20px' }} />
+}
 
 function Card({ children }: { children: React.ReactNode }) {
   return (
@@ -85,20 +94,40 @@ export default function App() {
       </header>
 
       {/* ── Content ── */}
-      <main style={{ maxWidth: 1000, margin: '0 auto', padding: '24px 24px 48px', display: 'flex', flexDirection: 'column', gap: 16 }}>
+      <main style={{ maxWidth: 1000, margin: '0 auto', padding: '24px 24px 48px', display: 'flex', flexDirection: 'column', gap: 12 }}>
 
-        {/* Current conditions */}
+        {/* 1. Daily narrative + current conditions */}
         <Card>
+          <DailySummary obs={obs} forecast={forecast} loading={loading} />
+          <Divider />
           <CurrentWeather obs={obs} loading={loading} />
         </Card>
 
-        {/* 7-day forecast */}
+        {/* 2. Phenomenon alert (conditional) */}
+        <PhenomenonBadge obs={obs} forecast={forecast} />
+
+        {/* 3. Activity impact */}
+        <Card>
+          <ActivityImpact obs={obs} forecast={forecast} loading={loading} />
+        </Card>
+
+        {/* 4. Historical context */}
+        <Card>
+          <ContextStats obs={obs} forecast={forecast} loading={loading} />
+        </Card>
+
+        {/* 5. 7-day forecast */}
         <Card>
           <ForecastStrip days={forecast} loading={loading} />
         </Card>
 
-        {/* Charts row */}
-        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 16 }}>
+        {/* 6. Forecast confidence */}
+        <Card>
+          <ConfidenceBar days={forecast} loading={loading} />
+        </Card>
+
+        {/* 7. Charts row */}
+        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
           <Card>
             <TempChart days={forecast} loading={loading} />
           </Card>

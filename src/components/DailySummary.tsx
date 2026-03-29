@@ -1,0 +1,74 @@
+import type { Observation, ForecastDay } from '../services/aemet'
+import { generateSummary } from '../utils/weatherLogic'
+
+interface Props { obs: Observation | null; forecast: ForecastDay[]; loading: boolean }
+
+function Skeleton() {
+  return (
+    <div style={{ padding: '28px 28px 24px' }}>
+      <div style={{ height: 14, width: 120, background: '#e2e8f0', borderRadius: 6, marginBottom: 14 }} />
+      <div style={{ height: 18, width: '90%', background: '#e2e8f0', borderRadius: 6, marginBottom: 8 }} />
+      <div style={{ height: 18, width: '70%', background: '#e2e8f0', borderRadius: 6 }} />
+    </div>
+  )
+}
+
+export default function DailySummary({ obs, forecast, loading }: Props) {
+  if (loading || !obs) return <Skeleton />
+
+  const summary = generateSummary(obs, forecast)
+
+  return (
+    <div style={{ padding: '28px 28px 24px', display: 'flex', gap: 24, alignItems: 'flex-start' }}>
+      {/* Temp block */}
+      <div style={{ flexShrink: 0, textAlign: 'center', minWidth: 72 }}>
+        <p style={{
+          fontFamily: 'var(--font-display)',
+          fontSize: '3.2rem',
+          fontWeight: 800,
+          color: 'var(--text)',
+          lineHeight: 1,
+          letterSpacing: '-0.04em',
+        }}>
+          {Math.round(obs.ta)}°
+        </p>
+        <p style={{
+          fontFamily: 'var(--font-mono)',
+          fontSize: '0.65rem',
+          color: 'var(--text-dim)',
+          marginTop: 4,
+          textTransform: 'uppercase',
+          letterSpacing: '0.08em',
+        }}>
+          Santa Cruz
+        </p>
+      </div>
+
+      {/* Divider */}
+      <div style={{ width: 1, alignSelf: 'stretch', background: 'var(--border)', flexShrink: 0 }} />
+
+      {/* Narrative */}
+      <div style={{ flex: 1 }}>
+        <p style={{
+          fontFamily: 'var(--font-mono)',
+          fontSize: '0.65rem',
+          fontWeight: 600,
+          color: 'var(--primary)',
+          textTransform: 'uppercase',
+          letterSpacing: '0.12em',
+          marginBottom: 8,
+        }}>
+          Qué está pasando hoy
+        </p>
+        <p style={{
+          fontFamily: 'var(--font-body)',
+          fontSize: '0.92rem',
+          color: 'var(--text)',
+          lineHeight: 1.7,
+        }}>
+          {summary}
+        </p>
+      </div>
+    </div>
+  )
+}
