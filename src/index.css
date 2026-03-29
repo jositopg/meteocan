@@ -1,102 +1,55 @@
 @import "tailwindcss";
 
-/* ── Design Tokens: The Cartesian Atlantic ── */
 :root {
-  /* Surface hierarchy */
-  --surface-dim:              #040e1f;
-  --surface:                  #081425;
-  --surface-container-low:    #111c2d;
-  --surface-container:        #192338;
-  --surface-container-high:   #1f2a3c;
-  --surface-container-highest:#273245;
-  --surface-bright:           #2e3d52;
-  --surface-variant:          #2a3548;
-
-  /* Content */
-  --on-surface:               #d8e3fb;
-  --on-surface-variant:       #8fa0b8;
-  --outline-variant:          #3f484c;
-
-  /* Brand */
-  --primary:                  #8bd1e8;
-  --primary-container:        #005f73;
-  --on-primary:               #001f29;
-
-  /* Accent */
-  --secondary:                #b2cad6;
-  --secondary-container:      #334850;
-  --on-secondary:             #1d333b;
-
-  /* Tertiary — electrical / heat */
-  --tertiary:                 #ffb95a;
-  --tertiary-container:       #6e3b00;
-
-  /* Semantic */
-  --rain:                     #4a9ece;
-  --storm:                    #ff4e3a;
-
-  /* Custom vegetation */
-  --veg-low:                  #5a7a3a;
-  --veg-mid:                  #3d6b3a;
-  --veg-high:                 #1e4d2b;
-  --veg-peak:                 #c8beb4;
+  --bg:            #edf1f7;
+  --surface:       #ffffff;
+  --surface-sub:   #f4f7fb;
+  --text:          #0e1a2d;
+  --text-muted:    #5c6e84;
+  --text-dim:      #9aabb8;
+  --primary:       #1b68d4;
+  --primary-light: #dbeafe;
+  --rain:          #3b82f6;
+  --rain-light:    #eff6ff;
+  --sun:           #f59e0b;
+  --sun-light:     #fffbeb;
+  --wind:          #059669;
+  --storm:         #dc2626;
+  --border:        rgba(0, 0, 0, 0.07);
+  --shadow-sm:     0 1px 3px rgba(0,0,0,0.07), 0 2px 8px rgba(0,0,0,0.04);
+  --shadow:        0 2px 8px rgba(0,0,0,0.08), 0 8px 24px rgba(0,0,0,0.05);
+  --font-display:  "Space Grotesk", sans-serif;
+  --font-body:     "Inter", sans-serif;
+  --font-mono:     "JetBrains Mono", monospace;
 }
 
 @theme {
-  --color-surface-dim:              var(--surface-dim);
-  --color-surface:                  var(--surface);
-  --color-surface-container-low:    var(--surface-container-low);
-  --color-surface-container:        var(--surface-container);
-  --color-surface-container-high:   var(--surface-container-high);
-  --color-surface-container-highest:var(--surface-container-highest);
-  --color-surface-bright:           var(--surface-bright);
-  --color-surface-variant:          var(--surface-variant);
-
-  --color-on-surface:               var(--on-surface);
-  --color-on-surface-variant:       var(--on-surface-variant);
-  --color-outline-variant:          var(--outline-variant);
-
-  --color-primary:                  var(--primary);
-  --color-primary-container:        var(--primary-container);
-  --color-on-primary:               var(--on-primary);
-
-  --color-secondary:                var(--secondary);
-  --color-secondary-container:      var(--secondary-container);
-  --color-on-secondary:             var(--on-secondary);
-
-  --color-tertiary:                 var(--tertiary);
-  --color-tertiary-container:       var(--tertiary-container);
-
-  --color-rain:                     var(--rain);
-  --color-storm:                    var(--storm);
-
-  --font-display:   "Space Grotesk", sans-serif;
-  --font-body:      "Inter", sans-serif;
-  --font-mono:      "JetBrains Mono", monospace;
+  --color-primary:       var(--primary);
+  --color-primary-light: var(--primary-light);
+  --color-rain:          var(--rain);
+  --color-sun:           var(--sun);
+  --color-wind:          var(--wind);
+  --color-storm:         var(--storm);
+  --color-text:          var(--text);
+  --color-text-muted:    var(--text-muted);
+  --color-text-dim:      var(--text-dim);
+  --color-surface:       var(--surface);
+  --color-bg:            var(--bg);
+  --font-display:        var(--font-display);
+  --font-body:           var(--font-body);
+  --font-mono:           var(--font-mono);
 }
 
-* {
-  box-sizing: border-box;
-  margin: 0;
-  padding: 0;
-}
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
 html, body, #root {
   height: 100%;
-  background-color: var(--surface);
-  color: var(--on-surface);
+  background: var(--bg);
+  color: var(--text);
   font-family: var(--font-body);
   -webkit-font-smoothing: antialiased;
 }
 
-/* Scrollbar styling */
-::-webkit-scrollbar {
-  width: 4px;
-}
-::-webkit-scrollbar-track {
-  background: var(--surface-container-low);
-}
-::-webkit-scrollbar-thumb {
-  background: var(--surface-container-high);
-  border-radius: 2px;
-}
+::-webkit-scrollbar       { width: 4px; height: 4px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: rgba(0,0,0,0.15); border-radius: 4px; }
