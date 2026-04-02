@@ -33,28 +33,29 @@ export default function ConfidenceBar({ days, loading }: Props) {
   if (loading || days.length === 0) return <Skeleton />
 
   return (
-    <div style={{ padding: '16px 20px 14px' }}>
-      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 10 }}>
+    <div style={{ padding: '20px 24px 24px' }}>
+      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 16 }}>
         <p style={{
           fontFamily: 'var(--font-mono)',
-          fontSize: '0.65rem',
-          fontWeight: 600,
-          color: 'var(--text-muted)',
+          fontSize: '0.62rem',
+          fontWeight: 700,
+          color: 'var(--text-dim)',
           textTransform: 'uppercase',
-          letterSpacing: '0.12em',
+          letterSpacing: '0.14em',
         }}>
           Fiabilidad de la previsión
         </p>
         <p style={{
           fontFamily: 'var(--font-body)',
-          fontSize: '0.68rem',
+          fontSize: '0.72rem',
           color: 'var(--text-dim)',
+          fontStyle: 'italic',
         }}>
           Cuanto más lejos, menos certeza
         </p>
       </div>
 
-      <div style={{ display: 'flex', gap: 6 }}>
+      <div style={{ display: 'flex', gap: 8 }}>
         {days.map((d, i) => {
           const conf = FORECAST_CONFIDENCE[i] ?? 20
           const color = confidenceColor(conf)
@@ -62,7 +63,7 @@ export default function ConfidenceBar({ days, loading }: Props) {
             <div key={i} style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: 4, alignItems: 'center' }}>
               <div style={{
                 width: '100%',
-                height: 36,
+                height: 44,
                 background: 'var(--bg)',
                 borderRadius: 6,
                 border: '1px solid var(--border)',

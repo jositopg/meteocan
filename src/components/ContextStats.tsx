@@ -22,28 +22,28 @@ export default function ContextStats({ obs, forecast, loading }: Props) {
   const month = new Intl.DateTimeFormat('es-ES', { month: 'long' }).format(new Date())
 
   return (
-    <div style={{ padding: '20px 20px 16px' }}>
+    <div style={{ padding: '20px 24px 24px' }}>
       <p style={{
         fontFamily: 'var(--font-mono)',
-        fontSize: '0.65rem',
-        fontWeight: 600,
-        color: 'var(--text-muted)',
+        fontSize: '0.62rem',
+        fontWeight: 700,
+        color: 'var(--text-dim)',
         textTransform: 'uppercase',
-        letterSpacing: '0.12em',
-        marginBottom: 14,
+        letterSpacing: '0.14em',
+        marginBottom: 16,
       }}>
-        Comparado con lo normal en {month}
+        ¿Es normal este tiempo en {month}?
       </p>
 
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 10 }}>
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 12 }}>
         {items.map(item => (
           <div
             key={item.label}
             style={{
               background: item.isUnusual ? '#fef9c3' : 'var(--bg)',
               border: `1px solid ${item.isUnusual ? '#fde047' : 'var(--border)'}`,
-              borderRadius: 10,
-              padding: '14px 14px 12px',
+              borderRadius: 14,
+              padding: '16px 16px 14px',
             }}
           >
             <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 6 }}>

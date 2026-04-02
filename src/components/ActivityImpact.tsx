@@ -31,14 +31,14 @@ export default function ActivityImpact({ obs, forecast, loading }: Props) {
   return (
     <div style={{ padding: '20px 24px 24px' }}>
       <p style={{
-        fontFamily: 'var(--font-mono)', fontSize: '0.65rem', fontWeight: 600,
-        color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.12em',
-        marginBottom: 14,
+        fontFamily: 'var(--font-mono)', fontSize: '0.62rem', fontWeight: 700,
+        color: 'var(--text-dim)', textTransform: 'uppercase', letterSpacing: '0.14em',
+        marginBottom: 16,
       }}>
         ¿Qué significa para ti hoy?
       </p>
 
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(5, 1fr)', gap: 10 }}>
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(5, 1fr)', gap: 12 }}>
         {activities.map(act => {
           const cfg = STATUS_CONFIG[act.status]
           return (
@@ -47,8 +47,8 @@ export default function ActivityImpact({ obs, forecast, loading }: Props) {
               style={{
                 background: cfg.bg,
                 border: `1px solid ${cfg.border}`,
-                borderRadius: 12,
-                padding: '12px 10px',
+                borderRadius: 14,
+                padding: '14px 12px',
                 display: 'flex',
                 flexDirection: 'column',
                 gap: 6,

@@ -19,12 +19,12 @@ export default function DailySummary({ obs, forecast, loading }: Props) {
   const summary = generateSummary(obs, forecast)
 
   return (
-    <div style={{ padding: '28px 28px 24px', display: 'flex', gap: 24, alignItems: 'flex-start' }}>
+    <div style={{ padding: '24px 24px 20px', display: 'flex', gap: 24, alignItems: 'flex-start' }}>
       {/* Temp block */}
-      <div style={{ flexShrink: 0, textAlign: 'center', minWidth: 72 }}>
+      <div style={{ flexShrink: 0, textAlign: 'center', minWidth: 80 }}>
         <p style={{
           fontFamily: 'var(--font-display)',
-          fontSize: '3.2rem',
+          fontSize: '3.6rem',
           fontWeight: 800,
           color: 'var(--text)',
           lineHeight: 1,
@@ -34,13 +34,21 @@ export default function DailySummary({ obs, forecast, loading }: Props) {
         </p>
         <p style={{
           fontFamily: 'var(--font-mono)',
-          fontSize: '0.65rem',
+          fontSize: '0.6rem',
           color: 'var(--text-dim)',
-          marginTop: 4,
+          marginTop: 6,
           textTransform: 'uppercase',
-          letterSpacing: '0.08em',
+          letterSpacing: '0.1em',
         }}>
           Santa Cruz
+        </p>
+        <p style={{
+          fontFamily: 'var(--font-body)',
+          fontSize: '0.72rem',
+          color: 'var(--text-muted)',
+          marginTop: 4,
+        }}>
+          ↑{obs.tamax}° ↓{obs.tamin}°
         </p>
       </div>
 
@@ -48,23 +56,22 @@ export default function DailySummary({ obs, forecast, loading }: Props) {
       <div style={{ width: 1, alignSelf: 'stretch', background: 'var(--border)', flexShrink: 0 }} />
 
       {/* Narrative */}
-      <div style={{ flex: 1 }}>
+      <div style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: 6 }}>
         <p style={{
           fontFamily: 'var(--font-mono)',
-          fontSize: '0.65rem',
-          fontWeight: 600,
+          fontSize: '0.6rem',
+          fontWeight: 700,
           color: 'var(--primary)',
           textTransform: 'uppercase',
-          letterSpacing: '0.12em',
-          marginBottom: 8,
+          letterSpacing: '0.14em',
         }}>
-          Qué está pasando hoy
+          Resumen del día
         </p>
         <p style={{
           fontFamily: 'var(--font-body)',
-          fontSize: '0.92rem',
+          fontSize: '0.93rem',
           color: 'var(--text)',
-          lineHeight: 1.7,
+          lineHeight: 1.75,
         }}>
           {summary}
         </p>

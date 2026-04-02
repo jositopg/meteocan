@@ -25,8 +25,8 @@ export default function RainChart({ days, loading }: Props) {
   const barPad = barW * 0.25
 
   return (
-    <div className="p-5 flex flex-col gap-3">
-      <p style={{ fontFamily: 'var(--font-display)', fontSize: '0.75rem', fontWeight: 600, color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.1em' }}>
+    <div style={{ padding: '20px 24px 24px', display: 'flex', flexDirection: 'column', gap: 14 }}>
+      <p style={{ fontFamily: 'var(--font-mono)', fontSize: '0.62rem', fontWeight: 700, color: 'var(--text-dim)', textTransform: 'uppercase', letterSpacing: '0.14em' }}>
         Probabilidad de lluvia (%)
       </p>
       <svg viewBox={`0 0 ${W} ${H}`} style={{ width: '100%', overflow: 'visible' }}>

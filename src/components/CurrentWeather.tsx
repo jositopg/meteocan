@@ -7,86 +7,121 @@ interface Props {
 
 const WIND_DIRS = ['N', 'NE', 'E', 'SE', 'S', 'SO', 'O', 'NO']
 
-function deriveCondition(obs: Observation): { label: string; emoji: string } {
-  if (obs.prec > 5)  return { label: 'Lluvia intensa',       emoji: '🌧' }
-  if (obs.prec > 0)  return { label: 'Lluvia',               emoji: '🌦' }
-  if (obs.hr > 88)   return { label: 'Cubierto',             emoji: '☁' }
-  if (obs.hr > 72)   return { label: 'Muy nublado',          emoji: '⛅' }
-  if (obs.hr > 55)   return { label: 'Parcialmente nublado', emoji: '🌤' }
-  return               { label: 'Despejado',            emoji: '☀' }
+function windDir(dv: number) { return WIND_DIRS[Math.round(dv / 45) % 8] }
+
+interface MetricProps {
+  icon: string
+  label: string
+  value: string
+  sub?: string
+  accent?: boolean
 }
 
-function Pill({ icon, label, sub }: { icon: string; label: string; sub: string }) {
+function Metric({ icon, label, value, sub, accent }: MetricProps) {
   return (
-    <div
-      className="flex items-center gap-2 px-4 py-2.5 rounded-xl"
-      style={{ background: 'var(--surface-sub)', border: '1px solid var(--border)' }}
-    >
-      <span style={{ fontSize: '1.1rem' }}>{icon}</span>
-      <div>
-        <p style={{ fontFamily: 'var(--font-body)', fontSize: '0.7rem', color: 'var(--text-muted)', lineHeight: 1 }}>{sub}</p>
-        <p style={{ fontFamily: 'var(--font-display)', fontSize: '0.9rem', fontWeight: 600, color: 'var(--text)', lineHeight: 1.3 }}>{label}</p>
-      </div>
+    <div style={{
+      display: 'flex',
+      flexDirection: 'column',
+      gap: 3,
+      padding: '12px 16px',
+      borderRadius: 12,
+      background: accent ? 'var(--primary-light)' : 'var(--bg)',
+      border: `1px solid ${accent ? 'rgba(27,104,212,0.2)' : 'var(--border)'}`,
+      flex: '1 1 0',
+      minWidth: 0,
+    }}>
+      <span style={{ fontSize: '1rem', lineHeight: 1 }}>{icon}</span>
+      <p style={{
+        fontFamily: 'var(--font-mono)', fontSize: '0.58rem', fontWeight: 600,
+        color: accent ? 'var(--primary)' : 'var(--text-dim)',
+        textTransform: 'uppercase', letterSpacing: '0.08em',
+      }}>
+        {label}
+      </p>
+      <p style={{
+        fontFamily: 'var(--font-display)', fontSize: '1rem', fontWeight: 700,
+        color: accent ? 'var(--primary)' : 'var(--text)', lineHeight: 1,
+      }}>
+        {value}
+      </p>
+      {sub && (
+        <p style={{
+          fontFamily: 'var(--font-body)', fontSize: '0.68rem',
+          color: accent ? 'var(--primary)' : 'var(--text-muted)', opacity: 0.8,
+        }}>
+          {sub}
+        </p>
+      )}
     </div>
   )
 }
 
 function Skeleton() {
-  const bar = (w: string, h = '1rem') => (
-    <div style={{ width: w, height: h, borderRadius: 6, background: '#e2e8f0', animation: 'pulse 1.5s ease-in-out infinite' }} />
-  )
   return (
-    <div className="flex flex-col gap-5 p-8">
-      {bar('160px', '0.85rem')}
-      <div className="flex items-baseline gap-3">
-        {bar('120px', '5rem')}
-        {bar('100px', '1.2rem')}
-      </div>
-      <div className="flex gap-3">{[1,2,3,4].map(i => bar('120px', '3.5rem'))}</div>
+    <div style={{ padding: '20px 24px', display: 'flex', gap: 10 }}>
+      {[...Array(5)].map((_, i) => (
+        <div key={i} style={{ flex: 1, height: 80, background: '#e2e8f0', borderRadius: 12 }} />
+      ))}
     </div>
   )
 }
 
 export default function CurrentWeather({ obs, loading }: Props) {
-  if (loading) return <Skeleton />
+  if (loading || !obs) return <Skeleton />
 
-  const cond    = obs ? deriveCondition(obs) : { label: 'Sin datos', emoji: '—' }
-  const windDir = obs ? WIND_DIRS[Math.round(obs.dv / 45) % 8] : '—'
+  const dir = windDir(obs.dv)
+  const gustDiff = obs.vmax - obs.vv
+  const gustNote = gustDiff > 10 ? ` (racha ${Math.round(obs.vmax)})` : ''
+
+  // Visibility — only show if reported (< 90 km) and noteworthy (< 20 km)
+  const showVis = obs.vis > 0 && obs.vis < 20
+  const visAccent = obs.vis < 5
+
+  // Dew point comfort
+  const dewPointLabel = obs.tpr < 10 ? 'Aire muy seco'
+    : obs.tpr < 16 ? 'Aire seco'
+    : obs.tpr < 21 ? 'Confortable'
+    : 'Húmedo'
 
   return (
-    <div className="p-8 flex flex-col gap-6">
-      {/* Location */}
-      <p style={{ fontFamily: 'var(--font-body)', fontSize: '0.85rem', color: 'var(--text-muted)' }}>
-        📍 {obs?.ubi ?? 'Santa Cruz de Tenerife'}
-        <span style={{ marginLeft: 8, color: 'var(--text-dim)' }}>
-          {obs ? `${obs.lat.toFixed(3)}°N · ${Math.abs(obs.lon).toFixed(3)}°W · ${obs.alt} m` : '28.464°N · 16.252°W · 35 m'}
-        </span>
+    <div style={{ padding: '20px 24px 24px' }}>
+      <p style={{
+        fontFamily: 'var(--font-mono)', fontSize: '0.62rem', fontWeight: 600,
+        color: 'var(--text-dim)', textTransform: 'uppercase', letterSpacing: '0.1em',
+        marginBottom: 12,
+      }}>
+        📍 {obs.ubi} · {obs.alt} m s.n.m.
       </p>
 
-      {/* Big temp + condition */}
-      <div className="flex items-center gap-6 flex-wrap">
-        <div className="flex items-baseline gap-2">
-          <span style={{ fontFamily: 'var(--font-display)', fontSize: '5.5rem', fontWeight: 700, color: 'var(--text)', lineHeight: 1 }}>
-            {obs?.ta ?? '—'}
-          </span>
-          <span style={{ fontFamily: 'var(--font-display)', fontSize: '2.5rem', fontWeight: 300, color: 'var(--text-muted)' }}>°C</span>
-        </div>
-        <div>
-          <p style={{ fontFamily: 'var(--font-display)', fontSize: '1.4rem', fontWeight: 600, color: 'var(--text)' }}>
-            {cond.emoji} {cond.label}
-          </p>
-          <p style={{ fontFamily: 'var(--font-body)', fontSize: '0.85rem', color: 'var(--text-muted)', marginTop: 4 }}>
-            Máx {obs?.tamax ?? '—'}° · Mín {obs?.tamin ?? '—'}°
-          </p>
-        </div>
-      </div>
-
-      {/* Metric pills */}
-      <div className="flex flex-wrap gap-3">
-        <Pill icon="💨" sub="Viento"      label={obs ? `${Math.round(obs.vv)} km/h ${windDir}` : '—'} />
-        <Pill icon="💧" sub="Humedad"     label={obs ? `${obs.hr}%` : '—'} />
-        <Pill icon="🌡" sub="Presión"     label={obs ? `${obs.pres} hPa` : '—'} />
-        <Pill icon="🌧" sub="Precipitación" label={obs ? `${obs.prec ?? 0} mm` : '—'} />
+      <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap' }}>
+        <Metric
+          icon="💨" label="Viento"
+          value={`${Math.round(obs.vv)} km/h ${dir}`}
+          sub={`Racha máx. ${Math.round(obs.vmax)} km/h${gustNote.includes('racha') ? '' : ''}`}
+        />
+        <Metric
+          icon="💧" label="Humedad"
+          value={`${obs.hr}%`}
+          sub={`Punto rocío ${Math.round(obs.tpr ?? 0)}° · ${dewPointLabel}`}
+        />
+        <Metric
+          icon="🌡️" label="Presión"
+          value={`${obs.pres} hPa`}
+          sub={obs.pres > 1020 ? 'Alta — tiempo estable' : obs.pres < 1005 ? 'Baja — tiempo cambiante' : 'Normal'}
+        />
+        <Metric
+          icon="🌧️" label="Precipitación"
+          value={`${obs.prec ?? 0} mm`}
+          sub={obs.prec > 5 ? 'Lluvia intensa' : obs.prec > 0 ? 'Lluvia activa' : 'Sin lluvia'}
+        />
+        {showVis && (
+          <Metric
+            icon="👁️" label="Visibilidad"
+            value={`${obs.vis} km`}
+            sub={obs.vis < 2 ? 'Niebla densa' : obs.vis < 5 ? 'Calima o niebla' : obs.vis < 10 ? 'Reducida' : 'Buena'}
+            accent={visAccent}
+          />
+        )}
       </div>
     </div>
   )
