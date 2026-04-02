@@ -8,17 +8,20 @@ import ForecastStrip from './components/ForecastStrip'
 import ConfidenceBar from './components/ConfidenceBar'
 import TempChart from './components/TempChart'
 import RainChart from './components/RainChart'
+import IslandSelector from './components/IslandSelector'
+import NorteSur from './components/NorteSur'
+import WhatToBring from './components/WhatToBring'
+import CityComparison from './components/CityComparison'
 import LearnPage from './pages/LearnPage'
-import { useWeather } from './hooks/useWeather'
+import { useWeather, type IslandId } from './hooks/useWeather'
 
-function Card({ children, noPad }: { children: React.ReactNode; noPad?: boolean }) {
+function Card({ children }: { children: React.ReactNode }) {
   return (
     <div style={{
       background: 'var(--surface)',
       borderRadius: 18,
       boxShadow: 'var(--shadow-sm)',
       border: '1px solid var(--border)',
-      overflow: noPad ? 'hidden' : undefined,
     }}>
       {children}
     </div>
@@ -29,26 +32,16 @@ function SectionDivider() {
   return <div style={{ height: 1, background: 'var(--border)', margin: '0 24px' }} />
 }
 
-function SectionLabel({ children }: { children: React.ReactNode }) {
-  return (
-    <div style={{ padding: '20px 24px 0' }}>
-      <p style={{
-        fontFamily: 'var(--font-mono)', fontSize: '0.62rem', fontWeight: 700,
-        color: 'var(--text-dim)', textTransform: 'uppercase', letterSpacing: '0.14em',
-      }}>
-        {children}
-      </p>
-    </div>
-  )
-}
-
 export default function App() {
   const [page, setPage] = useState<'map' | 'learn'>('map')
-  const { observation: obs, forecast, loading, error, lastUpdated, refresh } = useWeather()
+  const [islandId, setIslandId] = useState<IslandId>('tenerife')
+  const { observation: obs, obsNorth, obsSouth, forecast, loading, error, lastUpdated, refresh } = useWeather(islandId)
 
   if (page === 'learn') {
     return <LearnPage onBack={() => setPage('map')} />
   }
+
+  const showNorteSur = islandId === 'tenerife' && (!!obsNorth || !!obsSouth)
 
   return (
     <div style={{ minHeight: '100vh', background: 'var(--bg)' }}>
@@ -122,6 +115,9 @@ export default function App() {
             </button>
           </div>
         </div>
+
+        {/* ── Island selector ── */}
+        <IslandSelector selected={islandId} onChange={setIslandId} />
       </header>
 
       {/* ── Content ── */}
@@ -131,7 +127,7 @@ export default function App() {
         display: 'flex', flexDirection: 'column', gap: 20,
       }}>
 
-        {/* Phenomenon alert — only rendered when detected */}
+        {/* Phenomenon alert */}
         <PhenomenonBadge obs={obs} forecast={forecast} />
 
         {/* ── Card 1: Narrative + current metrics ── */}
@@ -141,12 +137,24 @@ export default function App() {
           <CurrentWeather obs={obs} loading={loading} />
         </Card>
 
-        {/* ── Card 2: Activities ── */}
+        {/* ── Card 2: What to bring ── */}
+        <Card>
+          <WhatToBring obs={obs} forecast={forecast} loading={loading} />
+        </Card>
+
+        {/* ── Card 3: Activities ── */}
         <Card>
           <ActivityImpact obs={obs} forecast={forecast} loading={loading} />
         </Card>
 
-        {/* ── Card 3: 7-day forecast ── */}
+        {/* ── Card 4: Norte vs Sur (Tenerife only) ── */}
+        {(showNorteSur || (loading && islandId === 'tenerife')) && (
+          <Card>
+            <NorteSur obsNorth={obsNorth} obsSouth={obsSouth} loading={loading} />
+          </Card>
+        )}
+
+        {/* ── Card 5: 7-day forecast ── */}
         <Card>
           <ForecastStrip days={forecast} loading={loading} />
         </Card>
@@ -161,14 +169,19 @@ export default function App() {
           </Card>
         </div>
 
-        {/* ── Card 4: Historical context ── */}
+        {/* ── Card 6: Historical context ── */}
         <Card>
           <ContextStats obs={obs} forecast={forecast} loading={loading} />
         </Card>
 
-        {/* ── Card 5: Forecast confidence ── */}
+        {/* ── Card 7: Forecast confidence ── */}
         <Card>
           <ConfidenceBar days={forecast} loading={loading} />
+        </Card>
+
+        {/* ── Card 8: City comparison ── */}
+        <Card>
+          <CityComparison localTemp={obs?.ta ?? null} />
         </Card>
 
         {/* Model resolution note */}

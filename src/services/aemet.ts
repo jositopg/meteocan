@@ -20,6 +20,20 @@ async function fetchAemet<T>(path: string): Promise<T> {
   return dataRes.json() as Promise<T>
 }
 
+// ── Island configuration ───────────────────────────────────────────────────
+
+export const ISLAND_CONFIG = {
+  tenerife:      { name: 'Tenerife',      emoji: '🌋', station: 'C449C', stationNorth: 'C447A', stationSouth: 'C429I', municipio: '38038' },
+  granCanaria:   { name: 'Gran Canaria',  emoji: '🏖️', station: 'C649I', stationNorth: null,     stationSouth: null,     municipio: '35016' },
+  lanzarote:     { name: 'Lanzarote',     emoji: '🌵', station: 'C029O', stationNorth: null,     stationSouth: null,     municipio: '35004' },
+  fuerteventura: { name: 'Fuerteventura', emoji: '🏜️', station: 'C249I', stationNorth: null,     stationSouth: null,     municipio: '35021' },
+  laPalma:       { name: 'La Palma',      emoji: '🌿', station: 'C139E', stationNorth: null,     stationSouth: null,     municipio: '38031' },
+  laGomera:      { name: 'La Gomera',     emoji: '🌲', station: 'C029K', stationNorth: null,     stationSouth: null,     municipio: '38035' },
+  elHierro:      { name: 'El Hierro',     emoji: '🦎', station: 'C929I', stationNorth: null,     stationSouth: null,     municipio: '38901' },
+} as const
+
+export type IslandId = keyof typeof ISLAND_CONFIG
+
 // ── Types ──────────────────────────────────────────────────────────────────
 
 export interface Observation {
@@ -40,7 +54,7 @@ export interface Observation {
   dmax: number     // dirección racha máxima °
   pres: number     // presión hPa
   prec: number     // precipitación mm
-  vis: number      // visibilidad km (útil para calima y niebla)
+  vis: number      // visibilidad km
   inso: number     // horas de insolación
 }
 
@@ -48,46 +62,35 @@ export interface ForecastDay {
   fecha: string
   tempMax: number
   tempMin: number
-  sensMax: number     // sensación térmica máxima
-  sensMin: number     // sensación térmica mínima
+  sensMax: number
+  sensMin: number
   probPrecip: number
   estadoCielo: string
   estadoCieloDesc: string
   vientoDir: string
   vientoVel: number
-  rachaMax: number    // racha máxima prevista km/h
-  uvMax: number       // índice UV máximo
-  hrMax: number       // humedad relativa máxima %
-  hrMin: number       // humedad relativa mínima %
+  rachaMax: number
+  uvMax: number
+  hrMax: number
+  hrMin: number
 }
 
-// ── Observation (current conditions) ──────────────────────────────────────
-
-// Station IDs for main islands
-export const STATIONS = {
-  tenerife:      'C449C',   // Santa Cruz de Tenerife
-  granCanaria:   'C649I',   // Las Palmas / Gando
-  laPalma:       'C139E',   // La Palma airport
-  lanzarote:     'C029O',   // Lanzarote airport
-  fuerteventura: 'C249I',   // Fuerteventura airport
-} as const
+// ── Observation fetch ──────────────────────────────────────────────────────
 
 export async function fetchObservation(stationId: string): Promise<Observation | null> {
   try {
     const data = await fetchAemet<Observation[]>(
       `/observacion/convencional/datos/estacion/${stationId}`
     )
-    // Returns array sorted by time — last entry is most recent
     const raw = data[data.length - 1] ?? null
     if (!raw) return null
-    // Normalize: some fields may be missing/null from the station
     return {
       ...raw,
-      vmax: raw.vmax   ?? raw.vv  ?? 0,
-      dmax: raw.dmax   ?? raw.dv  ?? 0,
-      tpr:  raw.tpr    ?? 0,
-      vis:  raw.vis    ?? 99,   // 99 = not reported (assume clear)
-      inso: raw.inso   ?? 0,
+      vmax: raw.vmax ?? raw.vv  ?? 0,
+      dmax: raw.dmax ?? raw.dv  ?? 0,
+      tpr:  raw.tpr  ?? 0,
+      vis:  raw.vis  ?? 99,
+      inso: raw.inso ?? 0,
     }
   } catch (err) {
     console.error('fetchObservation', err)
@@ -97,16 +100,6 @@ export async function fetchObservation(stationId: string): Promise<Observation |
 
 // ── Daily forecast ──────────────────────────────────────────────────────────
 
-// Municipality codes (INE) for Canary Islands
-export const MUNICIPIOS = {
-  santaCruzTenerife: '38038',
-  lasPalmasGC:       '35016',
-  santaCruzLaPalma:  '38031',
-  arrecife:          '35004',
-  puertoRosario:     '35021',
-} as const
-
-// Raw AEMET forecast shape (simplified — full schema is large)
 interface AemetForecastRaw {
   nombre: string
   provincia: string
