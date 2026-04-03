@@ -1,8 +1,8 @@
 import { useState } from 'react'
-import type { Observation, ForecastDay } from '../services/aemet'
+import type { Observation, ForecastDay, IslandId } from '../services/aemet'
 import { detectPhenomenon } from '../utils/weatherLogic'
 
-interface Props { obs: Observation | null; forecast: ForecastDay[] }
+interface Props { obs: Observation | null; forecast: ForecastDay[]; islandId: IslandId }
 
 const LEVEL_COLORS: Record<string, { bg: string; border: string; text: string; dot: string }> = {
   info:  { bg: 'var(--primary-light)', border: '#93c5fd', text: '#1d4ed8', dot: '#3b82f6' },
@@ -10,9 +10,9 @@ const LEVEL_COLORS: Record<string, { bg: string; border: string; text: string; d
   alert: { bg: '#fef2f2', border: '#fca5a5', text: '#991b1b', dot: '#ef4444' },
 }
 
-export default function PhenomenonBadge({ obs, forecast }: Props) {
+export default function PhenomenonBadge({ obs, forecast, islandId }: Props) {
   const [expanded, setExpanded] = useState(false)
-  const p = detectPhenomenon(obs, forecast)
+  const p = detectPhenomenon(obs, forecast, islandId)
   if (!p) return null
 
   const c = LEVEL_COLORS[p.level]

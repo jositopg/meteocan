@@ -1,7 +1,7 @@
-import type { Observation, ForecastDay } from '../services/aemet'
+import type { Observation, ForecastDay, IslandId } from '../services/aemet'
 import { assessActivities, type ActivityStatus } from '../utils/weatherLogic'
 
-interface Props { obs: Observation | null; forecast: ForecastDay[]; loading: boolean }
+interface Props { obs: Observation | null; forecast: ForecastDay[]; loading: boolean; islandId: IslandId }
 
 const STATUS_CONFIG: Record<ActivityStatus, { label: string; color: string; bg: string; border: string }> = {
   great:   { label: 'Perfecto',  color: '#065f46', bg: '#d1fae5', border: '#6ee7b7' },
@@ -23,10 +23,10 @@ function Skeleton() {
   )
 }
 
-export default function ActivityImpact({ obs, forecast, loading }: Props) {
+export default function ActivityImpact({ obs, forecast, loading, islandId }: Props) {
   if (loading || !obs) return <Skeleton />
 
-  const activities = assessActivities(obs, forecast)
+  const activities = assessActivities(obs, forecast, islandId)
 
   return (
     <div style={{ padding: '20px 24px 24px' }}>

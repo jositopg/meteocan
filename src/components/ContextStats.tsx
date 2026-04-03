@@ -1,7 +1,7 @@
-import type { Observation, ForecastDay } from '../services/aemet'
+import type { Observation, ForecastDay, IslandId } from '../services/aemet'
 import { getContext } from '../utils/weatherLogic'
 
-interface Props { obs: Observation | null; forecast: ForecastDay[]; loading: boolean }
+interface Props { obs: Observation | null; forecast: ForecastDay[]; loading: boolean; islandId: IslandId }
 
 function Skeleton() {
   return (
@@ -13,10 +13,10 @@ function Skeleton() {
   )
 }
 
-export default function ContextStats({ obs, forecast, loading }: Props) {
+export default function ContextStats({ obs, forecast, loading, islandId }: Props) {
   if (loading || !obs) return <Skeleton />
 
-  const items = getContext(obs, forecast)
+  const items = getContext(obs, forecast, islandId)
   if (items.length === 0) return null
 
   const month = new Intl.DateTimeFormat('es-ES', { month: 'long' }).format(new Date())

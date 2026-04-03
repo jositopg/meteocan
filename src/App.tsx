@@ -129,11 +129,11 @@ export default function App() {
       }}>
 
         {/* Phenomenon alert */}
-        <PhenomenonBadge obs={obs} forecast={forecast} />
+        <PhenomenonBadge obs={obs} forecast={forecast} islandId={islandId} />
 
         {/* ── Card 1: Narrative + current metrics ── */}
         <Card>
-          <DailySummary obs={obs} forecast={forecast} loading={loading} />
+          <DailySummary obs={obs} forecast={forecast} loading={loading} islandId={islandId} />
           <SectionDivider />
           <CurrentWeather obs={obs} loading={loading} />
         </Card>
@@ -145,7 +145,7 @@ export default function App() {
 
         {/* ── Card 3: Activities ── */}
         <Card>
-          <ActivityImpact obs={obs} forecast={forecast} loading={loading} />
+          <ActivityImpact obs={obs} forecast={forecast} loading={loading} islandId={islandId} />
         </Card>
 
         {/* ── Card 4: Norte vs Sur (Tenerife only) ── */}
@@ -172,7 +172,7 @@ export default function App() {
 
         {/* ── Card 6: Historical context ── */}
         <Card>
-          <ContextStats obs={obs} forecast={forecast} loading={loading} />
+          <ContextStats obs={obs} forecast={forecast} loading={loading} islandId={islandId} />
         </Card>
 
         {/* ── Card 7: Forecast confidence ── */}

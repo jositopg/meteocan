@@ -1,7 +1,8 @@
-import type { Observation, ForecastDay } from '../services/aemet'
+import type { Observation, ForecastDay, IslandId } from '../services/aemet'
+import { ISLAND_CONFIG } from '../services/aemet'
 import { generateSummary } from '../utils/weatherLogic'
 
-interface Props { obs: Observation | null; forecast: ForecastDay[]; loading: boolean }
+interface Props { obs: Observation | null; forecast: ForecastDay[]; loading: boolean; islandId: IslandId }
 
 function Skeleton() {
   return (
@@ -13,10 +14,11 @@ function Skeleton() {
   )
 }
 
-export default function DailySummary({ obs, forecast, loading }: Props) {
+export default function DailySummary({ obs, forecast, loading, islandId }: Props) {
   if (loading || !obs) return <Skeleton />
 
-  const summary = generateSummary(obs, forecast)
+  const summary = generateSummary(obs, forecast, islandId)
+  const capital = ISLAND_CONFIG[islandId].capital
 
   return (
     <div style={{ padding: '24px 24px 20px', display: 'flex', gap: 24, alignItems: 'flex-start' }}>
@@ -40,7 +42,7 @@ export default function DailySummary({ obs, forecast, loading }: Props) {
           textTransform: 'uppercase',
           letterSpacing: '0.1em',
         }}>
-          Santa Cruz
+          {capital}
         </p>
         <p style={{
           fontFamily: 'var(--font-body)',

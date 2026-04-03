@@ -23,13 +23,57 @@ async function fetchAemet<T>(path: string): Promise<T> {
 // ── Island configuration ───────────────────────────────────────────────────
 
 export const ISLAND_CONFIG = {
-  tenerife:      { name: 'Tenerife',      emoji: '🌋', station: 'C449C', stationNorth: 'C447A', stationSouth: 'C429I', municipio: '38038' },
-  granCanaria:   { name: 'Gran Canaria',  emoji: '🏖️', station: 'C649I', stationNorth: null,     stationSouth: null,     municipio: '35016' },
-  lanzarote:     { name: 'Lanzarote',     emoji: '🌵', station: 'C029O', stationNorth: null,     stationSouth: null,     municipio: '35004' },
-  fuerteventura: { name: 'Fuerteventura', emoji: '🏜️', station: 'C249I', stationNorth: null,     stationSouth: null,     municipio: '35021' },
-  laPalma:       { name: 'La Palma',      emoji: '🌿', station: 'C139E', stationNorth: null,     stationSouth: null,     municipio: '38031' },
-  laGomera:      { name: 'La Gomera',     emoji: '🌲', station: 'C029K', stationNorth: null,     stationSouth: null,     municipio: '38035' },
-  elHierro:      { name: 'El Hierro',     emoji: '🦎', station: 'C929I', stationNorth: null,     stationSouth: null,     municipio: '38901' },
+  tenerife: {
+    name: 'Tenerife', emoji: '🌋',
+    capital: 'Santa Cruz de Tenerife',
+    // Las islas con montañas altas tienen contraste norte/sur por el alisio (efecto Föhn)
+    hasNorteSur: true,
+    // Carretera de montaña a mencionar en alertas de lluvia/niebla
+    mainRoad: 'TF-21 (Teide)',
+    station: 'C449C', stationNorth: 'C447A', stationSouth: 'C429I', municipio: '38038',
+  },
+  granCanaria: {
+    name: 'Gran Canaria', emoji: '🏖️',
+    capital: 'Las Palmas de Gran Canaria',
+    hasNorteSur: true,
+    mainRoad: 'GC-600 (Cruz de Tejeda)',
+    station: 'C649I', stationNorth: null, stationSouth: null, municipio: '35016',
+  },
+  lanzarote: {
+    name: 'Lanzarote', emoji: '🌵',
+    capital: 'Arrecife',
+    hasNorteSur: false,    // isla llana, sin efecto Föhn apreciable
+    mainRoad: null,
+    station: 'C029O', stationNorth: null, stationSouth: null, municipio: '35004',
+  },
+  fuerteventura: {
+    name: 'Fuerteventura', emoji: '🏜️',
+    capital: 'Puerto del Rosario',
+    hasNorteSur: false,    // isla llana, sin efecto Föhn
+    mainRoad: null,
+    station: 'C249I', stationNorth: null, stationSouth: null, municipio: '35021',
+  },
+  laPalma: {
+    name: 'La Palma', emoji: '🌿',
+    capital: 'Santa Cruz de La Palma',
+    hasNorteSur: true,
+    mainRoad: 'LP-301 (Cumbre Nueva)',
+    station: 'C139E', stationNorth: null, stationSouth: null, municipio: '38031',
+  },
+  laGomera: {
+    name: 'La Gomera', emoji: '🌲',
+    capital: 'San Sebastián de La Gomera',
+    hasNorteSur: true,
+    mainRoad: 'GM-2 (Garajonay)',
+    station: 'C029K', stationNorth: null, stationSouth: null, municipio: '38035',
+  },
+  elHierro: {
+    name: 'El Hierro', emoji: '🦎',
+    capital: 'Valverde',
+    hasNorteSur: false,
+    mainRoad: null,
+    station: 'C929I', stationNorth: null, stationSouth: null, municipio: '38901',
+  },
 } as const
 
 export type IslandId = keyof typeof ISLAND_CONFIG
