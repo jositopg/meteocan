@@ -12,6 +12,7 @@ import IslandSelector from './components/IslandSelector'
 import NorteSur from './components/NorteSur'
 import WhatToBring from './components/WhatToBring'
 import CityComparison from './components/CityComparison'
+import OutdoorSports from './components/OutdoorSports'
 import LearnPage from './pages/LearnPage'
 import { useWeather, type IslandId } from './hooks/useWeather'
 
@@ -179,7 +180,12 @@ export default function App() {
           <ConfidenceBar days={forecast} loading={loading} />
         </Card>
 
-        {/* ── Card 8: City comparison ── */}
+        {/* ── Card 8: Outdoor sports ── */}
+        <Card>
+          <OutdoorSports obs={obs} forecast={forecast} loading={loading} islandId={islandId} />
+        </Card>
+
+        {/* ── Card 9: City comparison ── */}
         <Card>
           <CityComparison localTemp={obs?.ta ?? null} />
         </Card>
