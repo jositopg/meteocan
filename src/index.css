@@ -53,3 +53,28 @@ html, body, #root {
 ::-webkit-scrollbar       { width: 4px; height: 4px; }
 ::-webkit-scrollbar-track { background: transparent; }
 ::-webkit-scrollbar-thumb { background: rgba(0,0,0,0.15); border-radius: 4px; }
+
+/* ── Responsive layout helpers ──────────────────────────────────────── */
+.app-main    { max-width: 1040px; margin: 0 auto; padding: 24px 24px 80px; display: flex; flex-direction: column; gap: 20px; }
+.header-row  { max-width: 1040px; margin: 0 auto; padding: 0 24px; height: 58px; display: flex; align-items: center; justify-content: space-between; }
+.island-tabs { max-width: 1040px; margin: 0 auto; padding: 0 24px; display: flex; gap: 4px; overflow-x: auto; scrollbar-width: none; }
+.island-tabs::-webkit-scrollbar { display: none; }
+
+.grid-charts { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+.grid-5col   { display: grid; grid-template-columns: repeat(5, 1fr); gap: 12px; }
+.grid-7col   { display: grid; grid-template-columns: repeat(7, 1fr); gap: 10px; }
+.grid-6col   { display: grid; grid-template-columns: repeat(6, 1fr); gap: 10px; }
+.grid-3col   { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; }
+
+@media (max-width: 600px) {
+  .app-main    { padding: 14px 14px 80px; gap: 14px; }
+  .header-row  { padding: 0 14px; }
+  .island-tabs { padding: 0 10px; }
+  .header-badge { display: none; }
+  .grid-charts { grid-template-columns: 1fr; }
+  .grid-5col   { grid-template-columns: repeat(2, 1fr); }
+  .grid-7col   { grid-template-columns: repeat(4, 1fr); }
+  .grid-6col   { grid-template-columns: repeat(3, 1fr); }
+  /* Comparison header: allow wrapping */
+  .city-compare-header { flex-wrap: wrap; gap: 4px !important; }
+}

@@ -14,12 +14,7 @@ export default function IslandSelector({ selected, onChange }: Props) {
       borderBottom: '1px solid var(--border)',
       boxShadow: '0 1px 0 rgba(0,0,0,0.04)',
     }}>
-      <div style={{
-        maxWidth: 1040, margin: '0 auto',
-        padding: '0 28px',
-        display: 'flex', gap: 4, overflowX: 'auto',
-        scrollbarWidth: 'none',
-      }}>
+      <div className="island-tabs">
         {ISLANDS.map(([id, cfg]) => {
           const isSelected = id === selected
           return (

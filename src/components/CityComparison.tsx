@@ -49,7 +49,7 @@ function Skeleton() {
   return (
     <div style={{ padding: '20px 24px 24px' }}>
       <div style={{ height: 13, width: 220, background: '#e2e8f0', borderRadius: 6, marginBottom: 16 }} />
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(6, 1fr)', gap: 10 }}>
+      <div className="grid-6col">
         {[...Array(6)].map((_, i) => (
           <div key={i} style={{ height: 80, background: '#e2e8f0', borderRadius: 12 }} />
         ))}
@@ -82,7 +82,7 @@ export default function CityComparison({ localTemp }: Props) {
 
   return (
     <div style={{ padding: '20px 24px 24px' }}>
-      <div style={{ display: 'flex', alignItems: 'baseline', gap: 10, marginBottom: 16 }}>
+      <div className="city-compare-header" style={{ display: 'flex', alignItems: 'baseline', gap: 10, marginBottom: 16 }}>
         <p style={{
           fontFamily: 'var(--font-mono)', fontSize: '0.62rem', fontWeight: 700,
           color: 'var(--text-dim)', textTransform: 'uppercase', letterSpacing: '0.14em',
@@ -96,7 +96,7 @@ export default function CityComparison({ localTemp }: Props) {
         )}
       </div>
 
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(6, 1fr)', gap: 10 }}>
+      <div className="grid-6col">
         {cities.map(city => {
           const diff = localTemp !== null ? localTemp - city.temp : null
           const warmer = diff !== null && diff > 0

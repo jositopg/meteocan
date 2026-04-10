@@ -35,7 +35,7 @@ export default function ContextStats({ obs, forecast, loading, islandId }: Props
         ¿Es normal este tiempo en {month}?
       </p>
 
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 12 }}>
+      <div className="grid-3col">
         {items.map(item => (
           <div
             key={item.label}

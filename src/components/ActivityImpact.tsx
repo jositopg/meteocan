@@ -14,7 +14,7 @@ function Skeleton() {
   return (
     <div style={{ padding: '20px 24px' }}>
       <div style={{ height: 14, width: 140, background: '#e2e8f0', borderRadius: 6, marginBottom: 16 }} />
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(5, 1fr)', gap: 10 }}>
+      <div className="grid-5col">
         {[...Array(5)].map((_, i) => (
           <div key={i} style={{ height: 88, background: '#e2e8f0', borderRadius: 12 }} />
         ))}
@@ -38,7 +38,7 @@ export default function ActivityImpact({ obs, forecast, loading, islandId }: Pro
         ¿Qué significa para ti hoy?
       </p>
 
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(5, 1fr)', gap: 12 }}>
+      <div className="grid-5col">
         {activities.map(act => {
           const cfg = STATUS_CONFIG[act.status]
           return (

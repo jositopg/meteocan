@@ -94,7 +94,7 @@ function Skeleton() {
   return (
     <div style={{ padding: '20px 24px 24px' }}>
       <div style={{ height: 13, width: 140, background: '#e2e8f0', borderRadius: 6, marginBottom: 16 }} />
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(7, 1fr)', gap: 8 }}>
+      <div className="grid-7col">
         {[...Array(7)].map((_, i) => (
           <div key={i} style={{ height: 100, background: '#e2e8f0', borderRadius: 12 }} />
         ))}
@@ -118,7 +118,7 @@ export default function WhatToBring({ obs, forecast, loading }: Props) {
         ¿Qué llevar hoy?
       </p>
 
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(7, 1fr)', gap: 10 }}>
+      <div className="grid-7col">
         {items.map(item => {
           const s = STATUS_STYLE[item.status]
           return (

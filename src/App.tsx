@@ -56,11 +56,7 @@ export default function App() {
         top: 0,
         zIndex: 10,
       }}>
-        <div style={{
-          maxWidth: 1040, margin: '0 auto',
-          padding: '0 28px', height: 58,
-          display: 'flex', alignItems: 'center', justifyContent: 'space-between',
-        }}>
+        <div className="header-row">
           {/* Brand */}
           <div style={{ display: 'flex', alignItems: 'center', gap: 14 }}>
             <h1 style={{
@@ -69,7 +65,7 @@ export default function App() {
             }}>
               Meteo<span style={{ color: 'var(--primary)' }}>Canarias</span>
             </h1>
-            <span style={{
+            <span className="header-badge" style={{
               fontFamily: 'var(--font-mono)', fontSize: '0.65rem',
               color: 'var(--text-dim)', padding: '3px 8px', borderRadius: 6,
               background: 'var(--bg)', border: '1px solid var(--border)',
@@ -110,9 +106,11 @@ export default function App() {
                 color: 'var(--primary)', background: 'var(--primary-light)',
                 border: '1px solid rgba(27,104,212,0.2)',
                 borderRadius: 10, padding: '7px 16px', cursor: 'pointer',
+                whiteSpace: 'nowrap',
               }}
             >
-              Aprende meteorología →
+              <span className="header-badge">Aprende meteorología</span>
+              <span> →</span>
             </button>
           </div>
         </div>
@@ -122,11 +120,7 @@ export default function App() {
       </header>
 
       {/* ── Content ── */}
-      <main style={{
-        maxWidth: 1040, margin: '0 auto',
-        padding: '28px 28px 64px',
-        display: 'flex', flexDirection: 'column', gap: 20,
-      }}>
+      <main className="app-main">
 
         {/* Phenomenon alert */}
         <PhenomenonBadge obs={obs} forecast={forecast} islandId={islandId} />
@@ -161,7 +155,7 @@ export default function App() {
         </Card>
 
         {/* ── Row: Charts ── */}
-        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 20 }}>
+        <div className="grid-charts">
           <Card>
             <TempChart days={forecast} loading={loading} />
           </Card>
