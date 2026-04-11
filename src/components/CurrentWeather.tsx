@@ -27,8 +27,6 @@ function Metric({ icon, label, value, sub, accent }: MetricProps) {
       borderRadius: 12,
       background: accent ? 'var(--primary-light)' : 'var(--bg)',
       border: `1px solid ${accent ? 'rgba(27,104,212,0.2)' : 'var(--border)'}`,
-      flex: '1 1 0',
-      minWidth: 0,
     }}>
       <span style={{ fontSize: '1rem', lineHeight: 1 }}>{icon}</span>
       <p style={{
@@ -58,9 +56,9 @@ function Metric({ icon, label, value, sub, accent }: MetricProps) {
 
 function Skeleton() {
   return (
-    <div style={{ padding: '20px 24px', display: 'flex', gap: 10 }}>
+    <div style={{ padding: '20px 24px' }} className="metrics-grid">
       {[...Array(5)].map((_, i) => (
-        <div key={i} style={{ flex: 1, height: 80, background: '#e2e8f0', borderRadius: 12 }} />
+        <div key={i} style={{ height: 80, background: '#e2e8f0', borderRadius: 12 }} />
       ))}
     </div>
   )
@@ -93,7 +91,7 @@ export default function CurrentWeather({ obs, loading }: Props) {
         📍 {obs.ubi} · {obs.alt} m s.n.m.
       </p>
 
-      <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap' }}>
+      <div className="metrics-grid">
         <Metric
           icon="💨" label="Viento"
           value={`${Math.round(obs.vv)} km/h ${dir}`}
