@@ -135,8 +135,15 @@ export interface Phenomenon {
   icon: string
   name: string
   level: 'info' | 'warn' | 'alert'
+  timing: string   // 'Ahora mismo' | 'Hoy' | 'Mañana' | 'En X días'
   brief: string
   explanation: string
+}
+
+function timingForDay(dayIdx: number): string {
+  if (dayIdx === 0) return 'Hoy'
+  if (dayIdx === 1) return 'Mañana'
+  return `En ${dayIdx} días`
 }
 
 export function detectPhenomenon(
@@ -162,6 +169,7 @@ export function detectPhenomenon(
     const visStr = vis < 99 ? ` · Visibilidad ${vis} km` : ''
     return {
       id: 'calima', icon: '🏜️', name: 'Calima sahariana', level,
+      timing: 'Ahora mismo',
       brief: `${temp}°C · Humedad ${humid}%${visStr} — polvo del Sahara en el aire`,
       explanation: 'El viento del sur arrastra polvo del desierto del Sahara. El cielo tiene un tono naranja-amarillento, la temperatura sube anormalmente y el aire se seca. Podrás ver una neblina ocre en el horizonte. Efectos: visibilidad reducida, irritación ocular y respiratoria, calor distinto al habitual. Los coches amanecen con polvo rojizo. Desaparece cuando vuelve el alisio del noreste.',
     }
@@ -172,6 +180,7 @@ export function detectPhenomenon(
     const roadNote = cfg.mainRoad ? ` Las carreteras de montaña como ${cfg.mainRoad} pueden cerrar.` : ' Las carreteras de montaña pueden verse afectadas.'
     return {
       id: 'niebla', icon: '🌫️', name: 'Niebla densa', level: 'alert',
+      timing: 'Ahora mismo',
       brief: `Visibilidad de solo ${vis} km — conducción muy peligrosa`,
       explanation: `La niebla espesa reduce la visibilidad a menos de 2 km en ${cfg.capital} y alrededores. En carretera, pon luces antiniebla y reduce la velocidad.${roadNote}`,
     }
@@ -180,32 +189,41 @@ export function detectPhenomenon(
   // ── Alisio fuerte con efecto Föhn ────────────────────────────────────────
   if ((gust > 45 || wind > 35) && NE) {
     const gustStr = gust > wind + 10 ? ` (rachas de ${Math.round(gust)} km/h)` : ''
-    // Solo describir el contraste norte/sur en islas con montañas
     const fohnNote = cfg.hasNorteSur
       ? 'El alisio reforzado golpea las laderas norte, donde el aire sube, se enfría y forma nubes. Al bajar por el sur, el aire ya está seco y se calienta. Resultado: norte nublado y fresco, sur soleado y varios grados más cálido — todo en la misma isla.'
       : `En ${cfg.name} el viento del noreste sopla con fuerza. Sin montañas que lo frenen, afecta a toda la isla por igual.`
     return {
       id: 'alisio-fuerte', icon: '💨', name: 'Alisio intenso', level: 'info',
+      timing: 'Ahora mismo',
       brief: `Viento NE de ${Math.round(wind)} km/h${gustStr} — alisio reforzado en ${cfg.name}`,
       explanation: fohnNote,
     }
   }
 
   // ── Borrasca atlántica entrante ───────────────────────────────────────────
-  const comingRain = forecast.slice(1, 4).filter(d => d.probPrecip > 60).length
-  if (comingRain >= 2) {
+  const rainDays = forecast.slice(0, 5)
+    .map((d, i) => ({ idx: i, prob: d.probPrecip }))
+    .filter(({ prob }) => prob > 60)
+
+  if (rainDays.length >= 2) {
+    const firstIdx = rainDays[0].idx
+    const timing = timingForDay(firstIdx)
+    const timingBrief = firstIdx === 0 ? 'hoy' : firstIdx === 1 ? 'mañana' : `en ${firstIdx} días`
     return {
       id: 'borrasca', icon: '⛈️', name: 'Borrasca atlántica entrante', level: 'alert',
-      brief: 'Cambio de tiempo importante en los próximos 2–3 días',
+      timing,
+      brief: `Cambio de tiempo importante — lluvia intensa ${timingBrief} y los días siguientes`,
       explanation: 'Se aproxima una borrasca desde el Atlántico norte. El tiempo cambiará de forma notable: vientos racheados, nubosidad generalizada y lluvias que pueden ser intensas en todo el archipiélago. En Canarias las borrascas son poco frecuentes pero cuando llegan los cambios son bruscos. Toma precauciones si tienes planes al aire libre esta semana.',
     }
   }
 
   // ── Lluvia activa ─────────────────────────────────────────────────────────
   if (prec > 4 || forecast[0]?.probPrecip > 75) {
+    const fromObs = prec > 4
     return {
       id: 'lluvia', icon: '🌧️', name: 'Lluvia significativa', level: 'warn',
-      brief: prec > 4 ? `${prec} mm caídos — lluvia activa en la zona` : 'Alta probabilidad de lluvia hoy',
+      timing: fromObs ? 'Ahora mismo' : 'Hoy',
+      brief: fromObs ? `${prec} mm caídos — lluvia activa en la zona` : 'Alta probabilidad de lluvia hoy',
       explanation: 'La lluvia en Canarias es poco frecuente pero cuando llega puede ser intensa. Los barrancos y cauces secos pueden llenarse muy rápido — evita acercarte a ellos. Las carreteras de montaña pueden estar afectadas por niebla y agua.',
     }
   }
@@ -214,6 +232,7 @@ export function detectPhenomenon(
   if (wind >= 10 && wind <= 28 && NE && temp >= 17 && temp <= 27 && humid >= 55 && prec === 0) {
     return {
       id: 'dia-canario', icon: '✨', name: 'Día típicamente canario', level: 'info',
+      timing: 'Hoy',
       brief: 'Alisio suave y temperatura perfecta — así es el clima que hace famosas a las islas',
       explanation: `Hoy tienes el tiempo por el que mucha gente elige vivir o visitar Canarias: brisa fresca del noreste, temperatura agradable y buen tiempo en ${cfg.name}. ${cfg.hasNorteSur ? 'En el norte de la isla puede haber algo de nubosidad baja que se disipa al mediodía.' : 'El cielo despejado y el viento moderado hacen el día muy agradable.'} Condiciones ideales para estar al aire libre.`,
     }

@@ -52,15 +52,28 @@ export default function PhenomenonBadge({ obs, forecast, islandId }: Props) {
         <span style={{ fontSize: '1.25rem', flexShrink: 0 }}>{p.icon}</span>
 
         <div style={{ flex: 1 }}>
-          <p style={{
-            fontFamily: 'var(--font-display)',
-            fontSize: '0.88rem',
-            fontWeight: 700,
-            color: c.text,
-            marginBottom: 2,
-          }}>
-            {p.name}
-          </p>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 7, marginBottom: 2, flexWrap: 'wrap' }}>
+            <p style={{
+              fontFamily: 'var(--font-display)',
+              fontSize: '0.88rem',
+              fontWeight: 700,
+              color: c.text,
+            }}>
+              {p.name}
+            </p>
+            <span style={{
+              fontFamily: 'var(--font-mono)',
+              fontSize: '0.6rem',
+              fontWeight: 700,
+              color: c.text,
+              background: 'rgba(0,0,0,0.1)',
+              padding: '2px 7px',
+              borderRadius: 8,
+              whiteSpace: 'nowrap',
+            }}>
+              {p.timing}
+            </span>
+          </div>
           <p style={{
             fontFamily: 'var(--font-body)',
             fontSize: '0.78rem',

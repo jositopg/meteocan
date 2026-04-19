@@ -132,7 +132,9 @@ export default function CityComparison({ localTemp }: Props) {
                   background: warmer ? '#d1fae5' : '#dbeafe',
                   padding: '2px 7px', borderRadius: 8,
                 }}>
-                  {warmer ? `+${diff}° aquí` : `${Math.abs(diff)}° más frío`}
+                  {warmer
+                    ? `+${Math.round(diff * 10) / 10}° aquí`
+                    : `${Math.round(Math.abs(diff) * 10) / 10}° más frío`}
                 </span>
               )}
               <p style={{
