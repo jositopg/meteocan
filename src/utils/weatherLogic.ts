@@ -160,18 +160,29 @@ export function detectPhenomenon(
   const NE = isNE(obs.dv)
 
   // ── Calima sahariana ──────────────────────────────────────────────────────
-  const calimaByVis   = vis > 0 && vis < 8 && south && humid < 55
-  const calimaByTemp  = temp > 23 && humid < 45 && south
-  const calimaIntensa = temp > 28 && humid < 38 && south
+  // La calima llega del sector SE–S–SO (90°–240°) O con viento en calma
+  // (el polvo viaja en altura; en superficie puede haber calma o viento ESE)
+  const calimaDir = (obs.dv >= 90 && obs.dv <= 240) || obs.vv < 10
 
-  if (calimaIntensa || calimaByVis || calimaByTemp) {
-    const level: 'warn' | 'alert' = calimaIntensa || (vis > 0 && vis < 4) ? 'alert' : 'warn'
-    const visStr = vis < 99 ? ` · Visibilidad ${vis} km` : ''
+  // Cuatro caminos de detección, de mayor a menor certeza:
+  // 1. Visibilidad muy reducida + aire seco → calima casi seguro (sin importar viento)
+  const calimaByVisStrong = vis > 0 && vis < 4 && humid < 65
+  // 2. Visibilidad reducida + aire seco + dirección favorable
+  const calimaByVis       = vis > 0 && vis < 8 && humid < 55 && calimaDir
+  // 3. Temperatura elevada + humedad baja + dirección favorable
+  //    (cubre estaciones sin sensor de visibilidad — la mayoría)
+  const calimaByTempHumid = temp > 20 && humid < 42 && calimaDir
+  // 4. Calima intensa: calor extremo + aire muy seco
+  const calimaIntensa     = temp > 26 && humid < 35 && calimaDir
+
+  if (calimaIntensa || calimaByVisStrong || calimaByVis || calimaByTempHumid) {
+    const level: 'warn' | 'alert' = calimaIntensa || calimaByVisStrong ? 'alert' : 'warn'
+    const visStr = vis > 0 && vis < 90 ? ` · Visibilidad ${vis} km` : ''
     return {
       id: 'calima', icon: '🏜️', name: 'Calima sahariana', level,
       timing: 'Ahora mismo',
-      brief: `${temp}°C · Humedad ${humid}%${visStr} — polvo del Sahara en el aire`,
-      explanation: 'El viento del sur arrastra polvo del desierto del Sahara. El cielo tiene un tono naranja-amarillento, la temperatura sube anormalmente y el aire se seca. Podrás ver una neblina ocre en el horizonte. Efectos: visibilidad reducida, irritación ocular y respiratoria, calor distinto al habitual. Los coches amanecen con polvo rojizo. Desaparece cuando vuelve el alisio del noreste.',
+      brief: `${Math.round(temp * 10) / 10}°C · Humedad ${humid}%${visStr} — polvo del Sahara en el aire`,
+      explanation: 'El polvo del desierto del Sahara viaja en altura y envuelve las islas. El cielo toma un tono naranja-amarillento, la temperatura sube anormalmente y el aire se vuelve muy seco. Efectos: visibilidad reducida, irritación ocular y respiratoria, calor distinto al habitual. Los coches amanecen con polvo rojizo. Desaparece cuando el alisio del noreste vuelve a imponerse.',
     }
   }
 
@@ -262,7 +273,6 @@ export function assessActivities(
   if (!obs) return []
 
   const cfg  = islandCfg(islandId)
-  const wind = obs.vv
   const gust = obs.vmax
   const temp = obs.ta
   const prec = obs.prec
