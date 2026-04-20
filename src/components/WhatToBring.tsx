@@ -1,4 +1,5 @@
 import type { Observation, ForecastDay } from '../services/aemet'
+import { detectCalima } from '../utils/weatherLogic'
 
 interface Props { obs: Observation | null; forecast: ForecastDay[]; loading: boolean }
 
@@ -23,8 +24,7 @@ function buildItems(obs: Observation, forecast: ForecastDay[]): Item[] {
   const prec = obs.prec
   const temp = obs.ta
   const gust = obs.vmax
-  const south = obs.dv > 120 && obs.dv < 240
-  const calima = temp > 23 && obs.hr < 48 && south
+  const { active: calima, intense: calimaIntense } = detectCalima(obs)
 
   return [
     {
@@ -74,8 +74,8 @@ function buildItems(obs: Observation, forecast: ForecastDay[]): Item[] {
     {
       icon: '😷',
       label: 'Protección respiratoria',
-      status: calima && obs.hr < 38 ? 'yes' : calima ? 'maybe' : 'no',
-      reason: calima && obs.hr < 38 ? 'Calima intensa — polvo fino en suspensión afecta los bronquios'
+      status: calimaIntense ? 'yes' : calima ? 'maybe' : 'no',
+      reason: calimaIntense ? 'Calima intensa — polvo fino en suspensión afecta los bronquios'
         : calima ? 'Calima activa — recomendable en personas sensibles'
         : 'Aire limpio',
     },

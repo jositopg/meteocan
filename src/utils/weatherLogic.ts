@@ -146,6 +146,24 @@ function timingForDay(dayIdx: number): string {
   return `En ${dayIdx} días`
 }
 
+// ── Calima detection (fuente única de verdad) ──────────────────────────────
+// Exportada para que WhatToBring y assessActivities usen la misma lógica.
+export function detectCalima(obs: Observation): { active: boolean; intense: boolean } {
+  const { hr: humid, ta: temp, vis, dv, vv } = obs
+
+  // Calima llega del sector SE–S–SO (90–240°) O con viento en calma <10 km/h
+  // El polvo viaja a 1.000–3.000 m; el viento en superficie puede ser diferente
+  const calimaDir = (dv >= 90 && dv <= 240) || vv < 10
+
+  const calimaByVisStrong = vis > 0 && vis < 4 && humid < 65        // vis muy reducida, sin importar dirección
+  const calimaByVis       = vis > 0 && vis < 8 && humid < 55 && calimaDir
+  const calimaByTempHumid = temp > 20 && humid < 42 && calimaDir    // estaciones sin sensor de vis
+  const intense           = temp > 26 && humid < 35 && calimaDir
+
+  const active = intense || calimaByVisStrong || calimaByVis || calimaByTempHumid
+  return { active, intense }
+}
+
 export function detectPhenomenon(
   obs: Observation | null,
   forecast: ForecastDay[],
@@ -159,24 +177,10 @@ export function detectPhenomenon(
   const south = isSouth(obs.dv)
   const NE = isNE(obs.dv)
 
-  // ── Calima sahariana ──────────────────────────────────────────────────────
-  // La calima llega del sector SE–S–SO (90°–240°) O con viento en calma
-  // (el polvo viaja en altura; en superficie puede haber calma o viento ESE)
-  const calimaDir = (obs.dv >= 90 && obs.dv <= 240) || obs.vv < 10
+  const { active: isCalima, intense: calimaIntensa } = detectCalima(obs)
 
-  // Cuatro caminos de detección, de mayor a menor certeza:
-  // 1. Visibilidad muy reducida + aire seco → calima casi seguro (sin importar viento)
-  const calimaByVisStrong = vis > 0 && vis < 4 && humid < 65
-  // 2. Visibilidad reducida + aire seco + dirección favorable
-  const calimaByVis       = vis > 0 && vis < 8 && humid < 55 && calimaDir
-  // 3. Temperatura elevada + humedad baja + dirección favorable
-  //    (cubre estaciones sin sensor de visibilidad — la mayoría)
-  const calimaByTempHumid = temp > 20 && humid < 42 && calimaDir
-  // 4. Calima intensa: calor extremo + aire muy seco
-  const calimaIntensa     = temp > 26 && humid < 35 && calimaDir
-
-  if (calimaIntensa || calimaByVisStrong || calimaByVis || calimaByTempHumid) {
-    const level: 'warn' | 'alert' = calimaIntensa || calimaByVisStrong ? 'alert' : 'warn'
+  if (isCalima) {
+    const level: 'warn' | 'alert' = calimaIntensa || (vis > 0 && vis < 4) ? 'alert' : 'warn'
     const visStr = vis > 0 && vis < 90 ? ` · Visibilidad ${vis} km` : ''
     return {
       id: 'calima', icon: '🏜️', name: 'Calima sahariana', level,
@@ -276,11 +280,10 @@ export function assessActivities(
   const gust = obs.vmax
   const temp = obs.ta
   const prec = obs.prec
-  const south = isSouth(obs.dv)
   const NE   = isNE(obs.dv)
   const prob = forecast[0]?.probPrecip ?? 0
   const uv   = forecast[0]?.uvMax ?? 0
-  const calima = temp > 23 && obs.hr < 50 && south
+  const { active: calima } = detectCalima(obs)
 
   const beachTip = gust > 25 && NE && cfg.hasNorteSur
     ? 'Playas del sur más protegidas del viento hoy'
